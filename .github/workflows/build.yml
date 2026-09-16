@@ -42,7 +42,7 @@ jobs:
             -DNO_SYSTEMD=OFF
 
       - name: Build
-        run: cmake --build build -j"$(nproc)"
+        run: cmake --build build -j"$(nproc)" --verbose
 
       - name: Run tests
         run: ctest --test-dir build --output-on-failure

@@ -13,6 +13,10 @@ set(LIBRARIES Qt6::Gui
               KF6::StatusNotifierItem)
 
 find_package(KF6StatusNotifierItem REQUIRED)
+get_target_property(_sni_inc KF6::StatusNotifierItem INTERFACE_INCLUDE_DIRECTORIES)
+message(STATUS "KF6::StatusNotifierItem include dirs: ${_sni_inc}")
+get_target_property(_i18n_inc KF6::I18n INTERFACE_INCLUDE_DIRECTORIES)
+message(STATUS "KF6::I18n include dirs: ${_i18n_inc}")
 
 add_executable(fancontrol_gui ${Fancontrol_GUI_SRCS})
 target_link_libraries(fancontrol_gui PRIVATE ${LIBRARIES})
