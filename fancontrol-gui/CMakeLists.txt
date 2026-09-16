@@ -12,6 +12,8 @@ set(LIBRARIES Qt6::Gui
               KF6::Notifications
               KF6::StatusNotifierItem)
 
+find_package(KF6StatusNotifierItem REQUIRED)
+
 add_executable(fancontrol_gui ${Fancontrol_GUI_SRCS})
 target_link_libraries(fancontrol_gui PRIVATE ${LIBRARIES})
 
