@@ -73,11 +73,11 @@ PwmFan::PwmFan(uint index, Hwmon *parent, bool device) : Fan(index, parent, devi
     connect(this, &PwmFan::averageChanged, parent, &Hwmon::configUpdateNeeded);
     connect(this, &PwmFan::testStatusChanged, parent, &Hwmon::configUpdateNeeded);
 
-    auto path = device ? parent->path() + "/device" : parent->path();
+    auto path = device ? parent->path() + QLatin1String("/device") : parent->path();
 
     if (QDir(path).isReadable())
     {
-        const auto pwmFile = new QFile(path + "/pwm" + QString::number(index), this);
+        const auto pwmFile = new QFile(path + QLatin1String("/pwm") + QString::number(index), this);
 
         if (pwmFile->open(QFile::ReadWrite))
         {
@@ -95,7 +95,7 @@ PwmFan::PwmFan(uint index, Hwmon *parent, bool device) : Fan(index, parent, devi
             delete pwmFile;
         }
 
-        const auto pwmEnableFile = new QFile(path + "/pwm" + QString::number(index) + "_enable", this);
+        const auto pwmEnableFile = new QFile(path + QLatin1String("/pwm") + QString::number(index) + QLatin1String("_enable"), this);
 
         if (pwmEnableFile->open(QFile::ReadWrite))
         {
@@ -160,7 +160,7 @@ void PwmFan::toDefault()
 
     if (m_pwmStream->device() && m_enableStream->device() && parent())
     {
-        auto path = device() ? parent()->path() + "/device" : parent()->path();
+        auto path = device() ? parent()->path() + QLatin1String("/device") : parent()->path();
 
         auto device = m_pwmStream->device();
         m_pwmStream->setDevice(nullptr);
@@ -170,7 +170,7 @@ void PwmFan::toDefault()
         m_enableStream->setDevice(nullptr);
         delete device;
 
-        const auto pwmFile = new QFile(path + "/pwm" + QString::number(index()), this);
+        const auto pwmFile = new QFile(path + QLatin1String("/pwm") + QString::number(index()), this);
 
         if (pwmFile->open(QFile::ReadWrite))
         {
@@ -188,7 +188,7 @@ void PwmFan::toDefault()
             delete pwmFile;
         }
 
-        const auto pwmEnableFile = new QFile(path + "/pwm" + QString::number(index()) + "_enable", this);
+        const auto pwmEnableFile = new QFile(path + QLatin1String("/pwm") + QString::number(index()) + QLatin1String("_enable"), this);
 
         if (pwmEnableFile->open(QFile::ReadWrite))
         {
@@ -513,16 +513,16 @@ bool PwmFan::active() const
 {
     const auto active = KSharedConfig::openConfig(QStringLiteral("fancontrol-gui"))->group("active");
     const auto localActive = active.group(parent() ? parent()->name() : QStringLiteral(TEST_HWMON_NAME));
-    return localActive.readEntry("pwmfan" + QString::number(index()), true);
+    return localActive.readEntry(QLatin1String("pwmfan") + QString::number(index()), true);
 }
 
 void PwmFan::setActive(bool a)
 {
     const auto active = KSharedConfig::openConfig(QStringLiteral("fancontrol-gui"))->group("active");
     auto localActive = active.group(parent() ? parent()->name() : QStringLiteral(TEST_HWMON_NAME));
-    if (a != localActive.readEntry("pwmfan" + QString::number(index()), true))
+    if (a != localActive.readEntry(QLatin1String("pwmfan") + QString::number(index()), true))
     {
-        localActive.writeEntry("pwmfan" + QString::number(index()), a);
+        localActive.writeEntry(QLatin1String("pwmfan") + QString::number(index()), a);
         Q_EMIT activeChanged();
     }
 }

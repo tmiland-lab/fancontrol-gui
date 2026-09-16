@@ -117,7 +117,7 @@ void SystemdCommunicator::setServiceName(const QString &name)
         if (serviceExists())
         {
             QVariantList arguments;
-            arguments << QVariant(m_serviceName + ".service");
+            arguments << QVariant(m_serviceName + QLatin1String(".service"));
             const auto dbusreply = m_managerInterface->callWithArgumentList(QDBus::AutoDetect, QStringLiteral("LoadUnit"), arguments);
             if (dbusreply.type() == QDBusMessage::ErrorMessage)
             {
@@ -186,7 +186,7 @@ bool SystemdCommunicator::serviceExists() const
     const auto list = qdbus_cast<SystemdUnitFileList>(dbusreply.arguments().at(0));
     for (const auto &unitFile : list)
     {
-        if (unitFile.path.contains(m_serviceName + ".service"))
+        if (unitFile.path.contains(m_serviceName + QLatin1String(".service")))
             return true;
     }
 
@@ -208,7 +208,7 @@ bool SystemdCommunicator::systemdServiceEnabled() const
 {
     if (serviceExists())
     {
-        QDBusReply<QString> reply = m_managerInterface->call(QDBus::AutoDetect, QStringLiteral("GetUnitFileState"), m_serviceName + ".service");
+        QDBusReply<QString> reply = m_managerInterface->call(QDBus::AutoDetect, QStringLiteral("GetUnitFileState"), m_serviceName + QLatin1String(".service"));
         if (reply.isValid())
             return reply.value() == QStringLiteral("enabled");
         else
@@ -243,7 +243,7 @@ bool SystemdCommunicator::restartService()
     {
         Q_EMIT info(i18n("Restarting service: \'%1\'", m_serviceName));
 
-        auto args = QVariantList() << m_serviceName + ".service" << "replace";
+        auto args = QVariantList() << m_serviceName + QLatin1String(".service") << "replace";
         return dbusAction(QStringLiteral("ReloadOrRestartUnit"), args);
     }
 
@@ -284,7 +284,7 @@ bool SystemdCommunicator::dbusAction(const QString &method, const QVariantList &
         {
             success = false;
             error = dbusmessage.errorMessage();
-            Q_EMIT this->error("DBus error: " + error);
+            Q_EMIT this->error(QLatin1String("DBus error: ") + error);
         }
     }
 
@@ -336,7 +336,7 @@ void SystemdCommunicator::apply(bool serviceRestart)
                 Q_EMIT info(i18n("Disabling service autostart at boot: \'%1\'", m_serviceName));
                 method = QStringLiteral("DisableUnitFiles");
             }
-            const auto files = QStringList() << m_serviceName + ".service";
+            const auto files = QStringList() << m_serviceName + QLatin1String(".service");
             auto args = QVariantList() << files << false;
             if (m_serviceEnabled)
                 args << true;
@@ -358,7 +358,7 @@ void SystemdCommunicator::apply(bool serviceRestart)
                 Q_EMIT info(i18n("Stopping service: \'%1\'", m_serviceName));
                 method = QStringLiteral("StopUnit");
             }
-            auto args = QVariantList() << m_serviceName + ".service" << "replace";
+            auto args = QVariantList() << m_serviceName + QLatin1String(".service") << "replace";
 
             if (!dbusAction(method, args))
                 return;

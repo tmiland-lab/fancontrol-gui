@@ -652,7 +652,7 @@ QString Loader::createConfig() const
     auto configFile = QStringLiteral("# This file was created by Fancontrol-GUI") + QChar(QChar::LineFeed);
 
     if (m_interval != 0)
-        configFile += "INTERVAL=" + QString::number(m_interval) + QChar(QChar::LineFeed);
+        configFile += QLatin1String("INTERVAL=") + QString::number(m_interval) + QChar(QChar::LineFeed);
 
     if (!usedHwmons.isEmpty())
     {
@@ -663,14 +663,14 @@ QString Loader::createConfig() const
             auto sanitizedPath = hwmon->path();
             sanitizedPath.remove(QRegularExpression(QStringLiteral("^/sys/")));
             sanitizedPath.remove(QRegularExpression(QStringLiteral("/hwmon/hwmon\\d\\s*$")));
-            configFile += "hwmon" + QString::number(hwmon->index()) + "=" + sanitizedPath + QChar(QChar::Space);
+            configFile += QLatin1String("hwmon") + QString::number(hwmon->index()) + QLatin1String("=") + sanitizedPath + QChar(QChar::Space);
         }
         configFile += QChar(QChar::LineFeed);
 
         configFile += QLatin1String("DEVNAME=");
 
         for (const auto &hwmon : std::as_const(usedHwmons))
-            configFile += "hwmon" + QString::number(hwmon->index()) + "=" + hwmon->name().split('.').first() + QChar(QChar::Space);
+            configFile += QLatin1String("hwmon") + QString::number(hwmon->index()) + QLatin1String("=") + hwmon->name().split('.').first() + QChar(QChar::Space);
 
         configFile += QChar(QChar::LineFeed);
 
@@ -680,12 +680,12 @@ QString Loader::createConfig() const
 
             for (const auto &pwmFan : std::as_const(usedFans))
             {
-                configFile += "hwmon" + QString::number(pwmFan->parent()->index());
+                configFile += QLatin1String("hwmon") + QString::number(pwmFan->parent()->index());
                 configFile += pwmFan->device() ? "/device/" : "/";
-                configFile += "pwm" + QString::number(pwmFan->index()) + "=";
-                configFile += "hwmon" + QString::number(pwmFan->temp()->parent()->index());
+                configFile += QLatin1String("pwm") + QString::number(pwmFan->index()) + QLatin1String("=");
+                configFile += QLatin1String("hwmon") + QString::number(pwmFan->temp()->parent()->index());
                 configFile += pwmFan->temp()->device() ? "/device/" : "/";
-                configFile += "temp" + QString::number(pwmFan->temp()->index()) + "_input ";
+                configFile += QLatin1String("temp") + QString::number(pwmFan->temp()->index()) + QLatin1String("_input ");
             }
             configFile += QChar(QChar::LineFeed);
 
@@ -693,12 +693,12 @@ QString Loader::createConfig() const
 
             for (const auto &pwmFan : std::as_const(usedFans))
             {
-                configFile += "hwmon" + QString::number(pwmFan->parent()->index());
+                configFile += QLatin1String("hwmon") + QString::number(pwmFan->parent()->index());
                 configFile += pwmFan->device() ? "/device/" : "/";
-                configFile += "pwm" + QString::number(pwmFan->index()) + "=";
-                configFile += "hwmon" + QString::number(pwmFan->parent()->index());
+                configFile += QLatin1String("pwm") + QString::number(pwmFan->index()) + QLatin1String("=");
+                configFile += QLatin1String("hwmon") + QString::number(pwmFan->parent()->index());
                 configFile += pwmFan->device() ? "/device/" : "/";
-                configFile += "fan" + QString::number(pwmFan->index()) + "_input ";
+                configFile += QLatin1String("fan") + QString::number(pwmFan->index()) + QLatin1String("_input ");
             }
             configFile += QChar(QChar::LineFeed);
 
@@ -706,9 +706,9 @@ QString Loader::createConfig() const
 
             for (const auto &pwmFan : std::as_const(usedFans))
             {
-                configFile += "hwmon" + QString::number(pwmFan->parent()->index());
+                configFile += QLatin1String("hwmon") + QString::number(pwmFan->parent()->index());
                 configFile += pwmFan->device() ? "/device/" : "/";
-                configFile += "pwm" + QString::number(pwmFan->index()) + "=";
+                configFile += QLatin1String("pwm") + QString::number(pwmFan->index()) + QLatin1String("=");
                 configFile += QString::number(pwmFan->minTemp()) + QChar(QChar::Space);
             }
             configFile += QChar(QChar::LineFeed);
@@ -717,9 +717,9 @@ QString Loader::createConfig() const
 
             for (const auto &pwmFan : std::as_const(usedFans))
             {
-                configFile += "hwmon" + QString::number(pwmFan->parent()->index());
+                configFile += QLatin1String("hwmon") + QString::number(pwmFan->parent()->index());
                 configFile += pwmFan->device() ? "/device/" : "/";
-                configFile += "pwm" + QString::number(pwmFan->index()) + "=";
+                configFile += QLatin1String("pwm") + QString::number(pwmFan->index()) + QLatin1String("=");
                 configFile += QString::number(pwmFan->maxTemp()) + QChar(QChar::Space);
             }
             configFile += QChar(QChar::LineFeed);
@@ -728,9 +728,9 @@ QString Loader::createConfig() const
 
             for (const auto &pwmFan : std::as_const(usedFans))
             {
-                configFile += "hwmon" + QString::number(pwmFan->parent()->index());
+                configFile += QLatin1String("hwmon") + QString::number(pwmFan->parent()->index());
                 configFile += pwmFan->device() ? "/device/" : "/";
-                configFile += "pwm" + QString::number(pwmFan->index()) + "=";
+                configFile += QLatin1String("pwm") + QString::number(pwmFan->index()) + QLatin1String("=");
                 configFile += QString::number(pwmFan->minStart()) + QChar(QChar::Space);
             }
             configFile += QChar(QChar::LineFeed);
@@ -739,9 +739,9 @@ QString Loader::createConfig() const
 
             for (const auto &pwmFan : std::as_const(usedFans))
             {
-                configFile += "hwmon" + QString::number(pwmFan->parent()->index());
+                configFile += QLatin1String("hwmon") + QString::number(pwmFan->parent()->index());
                 configFile += pwmFan->device() ? "/device/" : "/";
-                configFile += "pwm" + QString::number(pwmFan->index()) + "=";
+                configFile += QLatin1String("pwm") + QString::number(pwmFan->index()) + QLatin1String("=");
                 configFile += QString::number(pwmFan->minStop()) + QChar(QChar::Space);
             }
             configFile += QChar(QChar::LineFeed);
@@ -750,9 +750,9 @@ QString Loader::createConfig() const
 
             for (const auto &pwmFan : std::as_const(usedFans))
             {
-                configFile += "hwmon" + QString::number(pwmFan->parent()->index());
+                configFile += QLatin1String("hwmon") + QString::number(pwmFan->parent()->index());
                 configFile += pwmFan->device() ? "/device/" : "/";
-                configFile += "pwm" + QString::number(pwmFan->index()) + "=";
+                configFile += QLatin1String("pwm") + QString::number(pwmFan->index()) + QLatin1String("=");
                 configFile += QString::number(pwmFan->minPwm()) + QChar(QChar::Space);
             }
             configFile += QChar(QChar::LineFeed);
@@ -761,9 +761,9 @@ QString Loader::createConfig() const
 
             for (const auto &pwmFan : std::as_const(usedFans))
             {
-                configFile += "hwmon" + QString::number(pwmFan->parent()->index());
+                configFile += QLatin1String("hwmon") + QString::number(pwmFan->parent()->index());
                 configFile += pwmFan->device() ? "/device/" : "/";
-                configFile += "pwm" + QString::number(pwmFan->index()) + "=";
+                configFile += QLatin1String("pwm") + QString::number(pwmFan->index()) + QLatin1String("=");
                 configFile += QString::number(pwmFan->maxPwm()) + QChar(QChar::Space);
             }
             configFile += QChar(QChar::LineFeed);
@@ -772,9 +772,9 @@ QString Loader::createConfig() const
 
             for (const auto &pwmFan : std::as_const(usedFans))
             {
-                configFile += "hwmon" + QString::number(pwmFan->parent()->index());
+                configFile += QLatin1String("hwmon") + QString::number(pwmFan->parent()->index());
                 configFile += pwmFan->device() ? "/device/" : "/";
-                configFile += "pwm" + QString::number(pwmFan->index()) + "=";
+                configFile += QLatin1String("pwm") + QString::number(pwmFan->index()) + QLatin1String("=");
                 configFile += QString::number(pwmFan->average()) + QChar(QChar::Space);
             }
             configFile += QChar(QChar::LineFeed);

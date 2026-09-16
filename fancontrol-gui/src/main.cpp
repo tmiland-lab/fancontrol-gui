@@ -24,6 +24,8 @@
 #include <QIcon>
 #include <QWindow>
 #include <QApplication>
+#include <QFile>
+#include <QStandardPaths>
 
 #include <KLocalizedString>
 #include <KAboutData>
@@ -31,6 +33,7 @@
 #include <KSharedConfig>
 #include <KWindowConfig>
 #include <kpackage/package.h>
+#include <kpackage/packageloader.h>
 
 #include "systemtrayicon.h"
 
@@ -100,24 +103,30 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<SystemTrayIcon>("Fancontrol.Gui", 1, 0, "SystemTrayIcon");
 
-    KPackage::Package package(QStringLiteral("KPackage/GenericQml"));
-    package.setPackagePath(QStringLiteral("org.kde.fancontrol.gui"));
+    KPackage::Package package = KPackage::PackageLoader::self()->loadPackage(QStringLiteral("GenericQml"));
+    const QString packagePath = QStandardPaths::locate(QStandardPaths::GenericDataLocation,
+                                                       QStringLiteral("kpackage/org.kde.fancontrol.gui"),
+                                                       QStandardPaths::LocateDirectory);
+    if (!packagePath.isEmpty())
+        package.setPath(packagePath);
 
     QString mainScript = package.metadata().value(QStringLiteral("X-Plasma-MainScript"));
     if (mainScript.isEmpty())
         mainScript = QStringLiteral("ui/main.qml");
 
     QQmlApplicationEngine engine;
-    engine.load(QUrl::fromLocalFile(package.filePath(QStringLiteral("contents")) + QLatin1Char('/') + mainScript));
+    const QString mainQmlUrl = package.filePath("contents") + QLatin1Char('/') + mainScript;
+    if (QFile::exists(mainQmlUrl))
+        engine.load(QUrl::fromLocalFile(mainQmlUrl));
 
     const auto rootObjects = engine.rootObjects();
     s_window = rootObjects.isEmpty() ? nullptr : qobject_cast<QWindow *>(rootObjects.first());
     if (s_window)
     {
-        KConfigGroup configGroup(KSharedConfig::openConfig(QStringLiteral(CONFIG_NAME)), "window");
+        KConfigGroup configGroup(KSharedConfig::openConfig(QStringLiteral(CONFIG_NAME)), QStringLiteral("window"));
         KWindowConfig::restoreWindowSize(s_window, configGroup);
         QObject::connect(&app, &QApplication::aboutToQuit, s_window, []() {
-            KConfigGroup configGroup(KSharedConfig::openConfig(QStringLiteral(CONFIG_NAME)), "window");
+            KConfigGroup configGroup(KSharedConfig::openConfig(QStringLiteral(CONFIG_NAME)), QStringLiteral("window"));
             KWindowConfig::saveWindowSize(s_window, configGroup);
             configGroup.sync();
         });

@@ -34,8 +34,8 @@ Sensor::Sensor(Hwmon *parent, uint index, const QString &type, bool device) : QO
     if (!parent)
         return;
 
-    m_id = parent->name() + "/" + type + QString::number(index);
-    m_path = device ? QStringLiteral("hwmon") + QString::number(parent->index()) + "/device/" + type + QString::number(index) : QStringLiteral("hwmon") + QString::number(parent->index()) + "/" + type + QString::number(index);
+    m_id = parent->name() + QLatin1String("/") + type + QString::number(index);
+    m_path = device ? QStringLiteral("hwmon") + QString::number(parent->index()) + QLatin1String("/device/") + type + QString::number(index) : QStringLiteral("hwmon") + QString::number(parent->index()) + QLatin1String("/") + type + QString::number(index);
 
     connect(this, &Sensor::error, parent, &Hwmon::error);
 }

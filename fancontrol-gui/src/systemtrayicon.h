@@ -58,6 +58,8 @@ private:
     QMenu *m_profilesMenu;
     QMenu *m_serviceMenu;
     QString m_tooltipSummary;
+    bool m_serviceActive = true;
+    bool m_serviceEnabled = true;
 };
 
 #endif // SYSTEMTRAYICON_H

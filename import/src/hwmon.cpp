@@ -64,14 +64,14 @@ Hwmon::Hwmon(const QString &path, Loader *parent) : QObject(parent),
             m_valid = false;
         }
 
-        auto nameFile = new QFile(path + "/name");
+        auto nameFile = new QFile(path + QLatin1String("/name"));
 
         if (nameFile->open(QFile::ReadOnly))
             m_name = QTextStream(nameFile).readLine();
         else
         {
             delete nameFile;
-            nameFile = new QFile(path + "/device/name");
+            nameFile = new QFile(path + QLatin1String("/device/name"));
 
             if (nameFile->open(QFile::ReadOnly))
                 m_name = QTextStream(nameFile).readLine();
@@ -107,7 +107,7 @@ void Hwmon::initialize()
 
         if (entry.contains(QStringLiteral("fan")))
         {
-            if (QFile::exists(m_path + "/pwm" + QString::number(index)))
+            if (QFile::exists(m_path + QLatin1String("/pwm") + QString::number(index)))
             {
                 if (!m_pwmFans.contains(index))
                 {
@@ -152,7 +152,7 @@ void Hwmon::initialize()
 
     if (isEmpty())
     {
-        QDir deviceDir(m_path + "/device");
+        QDir deviceDir(m_path + QLatin1String("/device"));
         const auto entries = deviceDir.entryList(QDir::Files | QDir::NoDotAndDotDot);
         for (const auto &entry : entries)
         {
@@ -171,7 +171,7 @@ void Hwmon::initialize()
 
             if (entry.contains(QStringLiteral("fan")))
             {
-                if (QFile::exists(m_path + "/device/pwm" + QString::number(index)))
+                if (QFile::exists(m_path + QLatin1String("/device/pwm") + QString::number(index)))
                 {
                     if (!m_pwmFans.contains(index))
                     {
