@@ -21,9 +21,8 @@
 
 #include "fancontrolkcm.h"
 
-#include <KAboutData>
-#include <KPluginFactory>
-#include <KLocalizedString>
+#include <KCoreAddons/KPluginFactory>
+#include <KI18n/KLocalizedString>
 
 
 #ifndef STANDARD_HELPER_ID
@@ -34,21 +33,9 @@
 K_PLUGIN_FACTORY_WITH_JSON(FancontrolKCMFactory, "kcm_fancontrol.json", registerPlugin<FancontrolKCM>();)
 
 
-FancontrolKCM::FancontrolKCM(QObject *parent, const QVariantList& args)
-    : ConfigModule(parent, args)
+FancontrolKCM::FancontrolKCM(QObject *parent, const KPluginMetaData& metaData)
+    : KQuickConfigModule(parent, metaData)
 {
-    auto about = new KAboutData(QStringLiteral("org.kde.fancontrol.kcm"),
-                                i18n("Fancontrol-KCM"),
-                                QStringLiteral("0.3"),
-                                i18n("KDE Fancontrol Module"),
-                                KAboutLicense::KAboutLicense::GPL_V2,
-                                QStringLiteral("Copyright (C) 2015 Malte Veerman"),
-                                QString(),
-                                QStringLiteral("http://github.com/maldela/fancontrol-gui"),
-                                QStringLiteral("http://github.com/maldela/fancontrol-gui/issues"));
-    about->addAuthor(i18n("Malte Veerman"), i18n("Main Developer"), QStringLiteral("malte.veerman@gmail.com"));
-    setAboutData(about);
-
     setButtons(Apply | Default);
     setAuthActionName(QString(STANDARD_HELPER_ID) + ".action");
 }

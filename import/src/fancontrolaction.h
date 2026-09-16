@@ -24,7 +24,7 @@
 #define FANCONTROLACTION_H
 
 
-#include <KAuth/KAuthAction>
+#include <KAuth/Action>
 
 
 #ifndef STANDARD_HELPER_ID

@@ -33,8 +33,8 @@
 #include <QTimer>
 #include <QRegularExpression>
 
-#include <KAuth/KAuthExecuteJob>
-#include <KLocalizedString>
+#include <KAuth/ExecuteJob>
+#include <KI18n/KLocalizedString>
 
 
 #define HWMON_PATH "/sys/class/hwmon"

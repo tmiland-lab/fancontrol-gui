@@ -18,18 +18,19 @@
  */
 
 #include <QQmlContext>
+#include <QQmlApplicationEngine>
 #include <QCommandLineParser>
 #include <QLoggingCategory>
 #include <QIcon>
 #include <QWindow>
 #include <QApplication>
 
-#include <KDeclarative/QmlObject>
-#include <KLocalizedString>
-#include <KAboutData>
-#include <KDBusService>
-#include <KSharedConfig>
-#include <KWindowConfig>
+#include <KI18n/KLocalizedString>
+#include <KCoreAddons/KAboutData>
+#include <KDBusAddons/KDBusService>
+#include <KConfigCore/KSharedConfig>
+#include <KConfigGui/KWindowConfig>
+#include <kpackage/package.h>
 
 #include "systemtrayicon.h"
 
@@ -99,9 +100,18 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<SystemTrayIcon>("Fancontrol.Gui", 1, 0, "SystemTrayIcon");
 
-    KDeclarative::QmlObject qmlObject;
-    qmlObject.loadPackage(QStringLiteral("org.kde.fancontrol.gui"));
-    s_window = qobject_cast<QWindow*>(qmlObject.rootObject());
+    KPackage::Package package(QStringLiteral("KPackage/GenericQml"));
+    package.setPackagePath(QStringLiteral("org.kde.fancontrol.gui"));
+
+    QString mainScript = package.metadata().value(QStringLiteral("X-Plasma-MainScript"));
+    if (mainScript.isEmpty())
+        mainScript = QStringLiteral("ui/main.qml");
+
+    QQmlApplicationEngine engine;
+    engine.load(QUrl::fromLocalFile(package.filePath(QStringLiteral("contents")) + QLatin1Char('/') + mainScript));
+
+    const auto rootObjects = engine.rootObjects();
+    s_window = rootObjects.isEmpty() ? nullptr : qobject_cast<QWindow *>(rootObjects.first());
     if (s_window)
     {
         KConfigGroup configGroup(KSharedConfig::openConfig(QStringLiteral(CONFIG_NAME)), "window");

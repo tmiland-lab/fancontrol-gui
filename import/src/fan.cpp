@@ -26,9 +26,9 @@
 #include <QDir>
 #include <QFile>
 
-#include <KSharedConfig>
-#include <KConfigGroup>
-#include <KLocalizedString>
+#include <KConfigCore/KSharedConfig>
+#include <KConfigCore/KConfigGroup>
+#include <KI18n/KLocalizedString>
 
 
 #define TEST_HWMON_NAME "test"

@@ -20,7 +20,7 @@
 
 #include "systemtrayicon.h"
 
-#include <KLocalizedString>
+#include <KI18n/KLocalizedString>
 
 #include <QMenu>
 

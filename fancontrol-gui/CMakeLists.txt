@@ -5,7 +5,7 @@ set(LIBRARIES Qt6::Gui
               Qt6::Widgets
               KF6::CoreAddons
               KF6::DBusAddons
-              KF6::Declarative
+              KF6::Package
               KF6::I18n
               KF6::Config
               KF6::Notifications

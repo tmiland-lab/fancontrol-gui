@@ -23,8 +23,8 @@
 #include <QTextStream>
 #include <QFileInfo>
 
-#include <KAuth/KAuthHelperSupport>
-#include <KLocalizedString>
+#include <KAuth/HelperSupport>
+#include <KI18n/KLocalizedString>
 
 #ifndef NO_SYSTEMD
 #include <QDBusInterface>

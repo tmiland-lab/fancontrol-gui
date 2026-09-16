@@ -1,0 +1,20 @@
+{
+    "KPlugin": {
+        "Id": "org.kde.fancontrol.kcm",
+        "Name": "Fancontrol-KCM",
+        "Description": "Control PWM-fans",
+        "Description[hu]": "PWM-ventilátorok vezérlése",
+        "Icon": "fancontrol_gui",
+        "Version": "0.4",
+        "License": "GPL",
+        "Category": "System",
+        "EnabledByDefault": true,
+        "Authors": [
+            {
+                "Name": "Malte Veerman",
+                "Email": "malte.veerman@gmail.com"
+            }
+        ]
+    },
+    "X-KDE-System-Settings-Parent-Category": "system"
+}

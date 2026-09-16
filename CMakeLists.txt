@@ -47,7 +47,7 @@ include(ECMQMLModules)
 find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Core Gui Widgets DBus Qml Quick)
 
 #Find KF6
-find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS I18n Auth Config CoreAddons DBusAddons Notifications Package Declarative)
+find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS I18n Auth Config CoreAddons DBusAddons Notifications Package)
 
 #Find QML modules
 ecm_find_qmlmodule(QtQuick 2.15)

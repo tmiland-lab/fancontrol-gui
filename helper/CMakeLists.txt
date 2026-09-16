@@ -1,5 +1,5 @@
 set(LIBRARIES Qt6::Core
-              KF6::Auth
+              KF6::AuthCore
               KF6::I18n)
 
 if(NOT NO_SYSTEMD)

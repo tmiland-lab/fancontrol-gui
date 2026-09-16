@@ -27,7 +27,7 @@ set(QML_FILES qml/qmldir
 
 set(LIB_PRIVATE_LIBRARIES Qt6::Qml
                           Qt6::Quick
-                          KF6::Auth
+                          KF6::AuthCore
                           KF6::ConfigCore
                           KF6::I18n)
 
