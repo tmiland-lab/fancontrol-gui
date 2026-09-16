@@ -23,11 +23,11 @@ jobs:
           apt-get install -y --no-install-recommends \
             build-essential cmake gettext extra-cmake-modules \
             qt6-base-dev qt6-declarative-dev qt6-svg-dev \
-            qml6-module-org-kde-kirigami2 \
+            qml6-module-org-kde-kirigami \
             qml6-module-qtquick-controls qml6-module-qtquick-layouts qml6-module-qtquick-dialogs \
             libkf6config-dev libkf6auth-dev libkf6package-dev libkf6declarative-dev \
             libkf6coreaddons-dev libkf6dbusaddons-dev libkf6i18n-dev libkf6notifications-dev \
-            libkf6plasma-dev libkf6kcmutils-dev libkf6configwidgets-dev libkf6windowsystem-dev
+            libplasma-dev libkf6kcmutils-dev libkf6configwidgets-dev libkf6windowsystem-dev
 
       - name: Configure
         run: |
