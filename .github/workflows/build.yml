@@ -45,4 +45,4 @@ jobs:
         run: cmake --build build -j"$(nproc)" --verbose
 
       - name: Run tests
-        run: ctest --test-dir build --output-on-failure
+        run: QT_QPA_PLATFORM=offscreen ctest --test-dir build --output-on-failure
