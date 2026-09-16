@@ -28,7 +28,7 @@
 #include <QLocale>
 #include <QDebug>
 
-#include <KI18n/KLocalizedString>
+#include <KLocalizedString>
 
 
 namespace Fancontrol

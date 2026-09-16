@@ -31,7 +31,7 @@
 #include <QDBusVariant>
 
 #include <KAuth/ExecuteJob>
-#include <KI18n/KLocalizedString>
+#include <KLocalizedString>
 
 #ifndef STANDARD_SERVICE_NAME
 #define STANDARD_SERVICE_NAME "fancontrol"

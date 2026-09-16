@@ -21,7 +21,7 @@
 #ifndef SYSTEMTRAYICON_H
 #define SYSTEMTRAYICON_H
 
-#include <KStatusNotifierItem/KStatusNotifierItem>
+#include <KStatusNotifierItem>
 
 #include <QStringListModel>
 #include <QMenu>

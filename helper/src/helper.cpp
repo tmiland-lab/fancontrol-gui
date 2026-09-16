@@ -24,7 +24,7 @@
 #include <QFileInfo>
 
 #include <KAuth/HelperSupport>
-#include <KI18n/KLocalizedString>
+#include <KLocalizedString>
 
 #ifndef NO_SYSTEMD
 #include <QDBusInterface>

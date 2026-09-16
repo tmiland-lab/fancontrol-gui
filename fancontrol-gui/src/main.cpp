@@ -25,11 +25,11 @@
 #include <QWindow>
 #include <QApplication>
 
-#include <KI18n/KLocalizedString>
-#include <KCoreAddons/KAboutData>
-#include <KDBusAddons/KDBusService>
-#include <KConfigCore/KSharedConfig>
-#include <KConfigGui/KWindowConfig>
+#include <KLocalizedString>
+#include <KAboutData>
+#include <KDBusService>
+#include <KSharedConfig>
+#include <KWindowConfig>
 #include <kpackage/package.h>
 
 #include "systemtrayicon.h"

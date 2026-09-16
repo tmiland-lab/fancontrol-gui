@@ -29,7 +29,7 @@
 #include <QTextStream>
 #include <QRegularExpression>
 
-#include <KI18n/KLocalizedString>
+#include <KLocalizedString>
 
 
 namespace Fancontrol

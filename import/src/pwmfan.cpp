@@ -30,9 +30,9 @@
 #include <QDir>
 #include <QFile>
 
-#include <KConfigCore/KConfigGroup>
-#include <KConfigCore/KSharedConfig>
-#include <KI18n/KLocalizedString>
+#include <KConfigGroup>
+#include <KSharedConfig>
+#include <KLocalizedString>
 
 
 #define TEST_HWMON_NAME "test"

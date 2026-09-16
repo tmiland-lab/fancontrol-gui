@@ -34,7 +34,7 @@
 #include <QRegularExpression>
 
 #include <KAuth/ExecuteJob>
-#include <KI18n/KLocalizedString>
+#include <KLocalizedString>
 
 
 #define HWMON_PATH "/sys/class/hwmon"

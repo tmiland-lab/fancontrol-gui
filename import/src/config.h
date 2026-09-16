@@ -23,7 +23,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <KConfigCore/KCoreConfigSkeleton>
+#include <KCoreConfigSkeleton>
 
 
 namespace Fancontrol

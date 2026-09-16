@@ -24,8 +24,8 @@
 
 #include <QObject>
 #include <QVariantList>
-#include <KCoreAddons/KPluginMetaData>
-#include <KCMUtilsQuick/kquickconfigmodule.h>
+#include <KPluginMetaData>
+#include <kquickconfigmodule.h>
 
 
 using namespace KCMUtils;
