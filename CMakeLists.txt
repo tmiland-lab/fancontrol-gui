@@ -1,9 +1,12 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.16)
 
-project(fancontroller)
+project(fancontroller VERSION 0.8.0 LANGUAGES CXX)
 
-set(QT_MIN_VERSION "5.8.0")
+set(QT_MIN_VERSION "6.5.0")
+set(KF_MIN_VERSION "6.0.0")
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #options
 option(NO_SYSTEMD "Compile without Systemd support. Reduces functionality significantly!" OFF)
@@ -23,21 +26,14 @@ add_definitions(-DSTANDARD_SERVICE_NAME="${STANDARD_SERVICE_NAME}")
 add_definitions(-DSTANDARD_CONFIG_FILE="${STANDARD_CONFIG_FILE}")
 add_definitions(-DSTANDARD_HELPER_ID="${STANDARD_HELPER_ID}")
 
-#KCM can't be build without systemd support
+#KCM can't be built without systemd support
 if(BUILD_KCM AND NO_SYSTEMD)
-
-    message(WARNING "KCM can't be build without systemd support")
+    message(WARNING "KCM can't be built without systemd support")
     set(BUILD_KCM FALSE)
-
-endif(BUILD_KCM AND NO_SYSTEMD)
-
-
-#Silence warnings
-cmake_policy(SET CMP0063 NEW)
-
+endif()
 
 #Find ECM
-find_package(ECM 5.38 REQUIRED)
+find_package(ECM ${KF_MIN_VERSION} REQUIRED)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${ECM_KDE_MODULE_DIR})
 
 #includes
@@ -45,99 +41,71 @@ include(KDEInstallDirs)
 include(KDECMakeSettings)
 include(KDECompilerSettings)
 include(FeatureSummary)
-include(FindPkgConfig)
 include(ECMQMLModules)
 
-#Find Qt5
-find_package(Qt5Core ${QT_MIN_VERSION} REQUIRED)
+#Find Qt6
+find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Core Gui Widgets DBus Qml Quick)
 
-#Find KF5
-find_package(KF5 COMPONENTS I18n REQUIRED)
+#Find KF6
+find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS I18n Auth Config CoreAddons DBusAddons Notifications Package)
 
 #Find QML modules
-ecm_find_qmlmodule(QtQuick 2.6)
-ecm_find_qmlmodule(QtQuick.Controls 2.1)
-ecm_find_qmlmodule(QtQuick.Layouts 1.2)
-ecm_find_qmlmodule(QtQuick.Dialogs 1.2)
-ecm_find_qmlmodule(org.kde.kirigami 2.3)
+ecm_find_qmlmodule(QtQuick 2.15)
+ecm_find_qmlmodule(QtQuick.Controls 2.15)
+ecm_find_qmlmodule(QtQuick.Layouts 2.15)
+ecm_find_qmlmodule(org.kde.kirigami 2.14)
 
-include_directories (${CMAKE_SOURCE_DIR})
-
+include_directories(${CMAKE_SOURCE_DIR})
 
 #Systemd
 if(NOT NO_SYSTEMD)
-
     message(STATUS "Compiling for Systemd")
-
-else(NOT NO_SYSTEMD)
-
+else()
     message(STATUS "Compiling without Systemd")
     set(NO_SYSTEMD true)
     add_definitions(-DNO_SYSTEMD)
-
-endif(NOT NO_SYSTEMD)
-
+endif()
 
 #KHelper for actions that require superuser rights
 if(BUILD_HELPER)
-
     add_subdirectory(helper)
-
-endif(BUILD_HELPER)
-
+endif()
 
 #Build the standalone application
 if(BUILD_GUI)
-
     message(STATUS "Build the standalone application")
     add_subdirectory(fancontrol-gui)
-
-endif(BUILD_GUI)
-
+endif()
 
 #Build the KCM
 if(BUILD_KCM)
-
     message(STATUS "Build the KCM")
     add_subdirectory(kcm)
-
-endif(BUILD_KCM)
-
+endif()
 
 #Build the plasmoid
 if(BUILD_PLASMOID)
-
     message(STATUS "Build the plasmoid")
     add_subdirectory(plasmoid)
-
-endif(BUILD_PLASMOID)
-
+endif()
 
 #build and install the shared parts
 if(INSTALL_SHARED)
-
     #qml plugin
     add_subdirectory(import)
-
 
     #icon
     include(ECMInstallIcons)
     ecm_install_icons(ICONS sc-apps-org.kde.fancontrol.gui.svg DESTINATION "${KDE_INSTALL_ICONDIR}")
 
-
     #translations
     ki18n_install(po)
-
-endif(INSTALL_SHARED)
-
+endif()
 
 #install polkit files
 if(INSTALL_POLKIT)
-
     add_subdirectory(polkit)
-
-endif(INSTALL_POLKIT)
-
+endif()
 
 #summary
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)

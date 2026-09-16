@@ -60,7 +60,7 @@ QVariant PwmFanModel::data(const QModelIndex& index, int role) const
     switch (role)
     {
         case DisplayRole:
-            return fan->name() + "  (" + fan->id() + ")";
+            return QString(fan->name() + QLatin1String("  (") + fan->id() + QLatin1String(")"));
 
         case ObjectRole:
             return QVariant::fromValue(fan);
@@ -80,7 +80,7 @@ void PwmFanModel::setPwmFans(QList<PwmFan *> fans)
     beginResetModel();
 
     m_fans = fans;
-    emit fansChanged();
+    Q_EMIT fansChanged();
 
     for (const auto &fan : fans)
         connect(fan, &PwmFan::nameChanged, this, static_cast<void(PwmFanModel::*)()>(&PwmFanModel::updateFan));
@@ -90,7 +90,7 @@ void PwmFanModel::setPwmFans(QList<PwmFan *> fans)
 
 void PwmFanModel::addPwmFan(PwmFan* newFan)
 {
-    for (const auto &oldFan : qAsConst(m_fans))
+    for (const auto &oldFan : std::as_const(m_fans))
     {
         if (*oldFan == *newFan)
             return;
@@ -104,7 +104,7 @@ void PwmFanModel::addPwmFan(PwmFan* newFan)
 
     beginInsertRows(QModelIndex(), index, index);
     m_fans = newFans;
-    emit fansChanged();
+    Q_EMIT fansChanged();
     endInsertRows();
 }
 
@@ -125,7 +125,7 @@ void PwmFanModel::updateFan(PwmFan *fan)
     if (i == -1)
         return;
 
-    emit dataChanged(index(i, 0), index(i, 0), QVector<int>{ DisplayRole });
+    Q_EMIT dataChanged(index(i, 0), index(i, 0), QVector<int>{ DisplayRole });
 }
 
 void PwmFanModel::updateFan()

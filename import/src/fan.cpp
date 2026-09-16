@@ -22,13 +22,13 @@
 
 #include "hwmon.h"
 
-#include <QtCore/QTextStream>
-#include <QtCore/QDir>
-#include <QtCore/QFile>
+#include <QTextStream>
+#include <QDir>
+#include <QFile>
 
-#include <KConfigCore/KSharedConfig>
-#include <KConfigCore/KConfigGroup>
-#include <KI18n/KLocalizedString>
+#include <KSharedConfig>
+#include <KConfigGroup>
+#include <KLocalizedString>
 
 
 #define TEST_HWMON_NAME "test"
@@ -45,11 +45,11 @@ Fan::Fan(uint index, Hwmon *parent, bool device) :
     if (!parent)
         return;
 
-    auto path = device ? parent->path() + "/device" : parent->path();
+    auto path = device ? parent->path() + QLatin1String("/device") : parent->path();
 
     if (QDir(path).isReadable())
     {
-        const auto rpmFile = new QFile(path + "/fan" + QString::number(index) + "_input", this);
+        const auto rpmFile = new QFile(path + QLatin1String("/fan") + QString::number(index) + QLatin1String("_input"), this);
 
         if (rpmFile->open(QFile::ReadOnly))
         {
@@ -58,7 +58,7 @@ Fan::Fan(uint index, Hwmon *parent, bool device) :
         }
         else
         {
-            emit error(i18n("Can't open rpm file: \'%1\'", rpmFile->fileName()));
+            Q_EMIT error(i18n("Can't open rpm file: \'%1\'", rpmFile->fileName()));
             delete rpmFile;
         }
     }
@@ -73,26 +73,26 @@ Fan::~Fan()
 
 QString Fan::name() const
 {
-    const auto names = KSharedConfig::openConfig(QStringLiteral("fancontrol-gui"))->group("names");
+    const auto names = KSharedConfig::openConfig(QStringLiteral("fancontrol-gui"))->group(QStringLiteral("names"));
     const auto localNames = names.group(parent() ? parent()->name() : QStringLiteral(TEST_HWMON_NAME));
-    const auto name = localNames.readEntry("fan" + QString::number(index()), QString());
+    const auto name = localNames.readEntry(QLatin1String("fan") + QString::number(index()), QString());
 
     if (name.isEmpty())
-        return "fan" + QString::number(index());
+        return QLatin1String("fan") + QString::number(index());
 
     return name;
 }
 
 void Fan::setName(const QString &name)
 {
-    const auto names = KSharedConfig::openConfig(QStringLiteral("fancontrol-gui"))->group("names");
+    const auto names = KSharedConfig::openConfig(QStringLiteral("fancontrol-gui"))->group(QStringLiteral("names"));
     auto localNames = names.group(parent() ? parent()->name() : QStringLiteral(TEST_HWMON_NAME));
 
-    if (name != localNames.readEntry("fan" + QString::number(index()), QString())
+    if (name != localNames.readEntry(QLatin1String("fan") + QString::number(index()), QString())
         && !name.isEmpty())
     {
-        localNames.writeEntry("fan" + QString::number(index()), name);
-        emit nameChanged();
+        localNames.writeEntry(QLatin1String("fan") + QString::number(index()), name);
+        Q_EMIT nameChanged();
     }
 }
 
@@ -101,14 +101,14 @@ void Fan::toDefault()
     if (m_rpmStream->device() && parent())
     {
         auto rpmDevice = m_rpmStream->device();
-        m_rpmStream->setDevice(Q_NULLPTR);
+        m_rpmStream->setDevice(nullptr);
         delete rpmDevice;
 
-        auto path = device() ? parent()->path() + "/device" : parent()->path();
+        auto path = device() ? parent()->path() + QLatin1String("/device") : parent()->path();
 
         if (QDir(path).isReadable())
         {
-            const auto rpmFile = new QFile(path + "/fan" + QString::number(index()) + "_input", this);
+            const auto rpmFile = new QFile(path + QLatin1String("/fan") + QString::number(index()) + QLatin1String("_input"), this);
 
             if (rpmFile->open(QFile::ReadOnly))
             {
@@ -117,7 +117,7 @@ void Fan::toDefault()
             }
             else
             {
-                emit error(i18n("Can't open rpm file: \'%1\'", rpmFile->fileName()));
+                Q_EMIT error(i18n("Can't open rpm file: \'%1\'", rpmFile->fileName()));
                 delete rpmFile;
             }
         }
@@ -133,7 +133,7 @@ void Fan::update()
     if (rpm != m_rpm)
     {
         m_rpm = rpm;
-        emit rpmChanged();
+        Q_EMIT rpmChanged();
     }
 }
 

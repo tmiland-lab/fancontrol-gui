@@ -22,7 +22,7 @@
 #ifndef LOADERTEST_H
 #define LOADERTEST_H
 
-#include <QtCore/QObject>
+#include <QObject>
 
 #include "loader.h"
 #include "hwmon.h"
@@ -39,7 +39,7 @@ class TestHwmon : public Hwmon
 
 public:
 
-    explicit TestHwmon(const QString &name, const QList<QString *> &rpms, const QList<QString *> &pwms, const QList<QString *> &pwmmodes, const QList<QString *> &temps, uint index = 0, Loader *parent = Q_NULLPTR) : Hwmon(QString(), parent)
+    explicit TestHwmon(const QString &name, const QList<QString *> &rpms, const QList<QString *> &pwms, const QList<QString *> &pwmmodes, const QList<QString *> &temps, uint index = 0, Loader *parent = nullptr) : Hwmon(QString(), parent)
     {
         m_name = name;
         m_index = index;
@@ -67,7 +67,7 @@ public:
             m_pwmFans.insert(newPwmFan->index(), newPwmFan);
             m_fans.insert(newPwmFan->index(), newPwmFan);
         }
-        emit pwmFansChanged();
+        Q_EMIT pwmFansChanged();
 
         for (auto i=m_pwmFans.size()-1; i<rpms.size(); i++)
         {
@@ -76,7 +76,7 @@ public:
 
             m_fans.insert(newFan->index(), newFan);
         }
-        emit fansChanged();
+        Q_EMIT fansChanged();
 
         for (auto i=0; i<temps.size(); i++)
         {
@@ -85,7 +85,7 @@ public:
 
             m_temps.insert(newTemp->index(), newTemp);
         }
-        emit tempsChanged();
+        Q_EMIT tempsChanged();
 
         m_valid = true;
     }
@@ -97,13 +97,13 @@ class TestLoader : public Loader
 
 public:
 
-    explicit TestLoader(GUIBase *parent = Q_NULLPTR) : Loader(parent) {}
+    explicit TestLoader(GUIBase *parent = nullptr) : Loader(parent) {}
 
     void addHwmon(Hwmon *hwmon)
     {
         connect(this, &Loader::sensorsUpdateNeeded, hwmon, &Hwmon::sensorsUpdateNeeded);
         m_hwmons.insert(hwmon->index(), hwmon);
-        emit hwmonsChanged();
+        Q_EMIT hwmonsChanged();
     }
     void parse(const QString &string)
     {
@@ -123,7 +123,7 @@ class LoaderTest : public QObject
 {
     Q_OBJECT
 
-private slots:
+private Q_SLOTS:
 
     void initTestCase();
     void cleanupTestCase();

@@ -22,7 +22,7 @@
 #ifndef TESTTEMP_H
 #define TESTTEMP_H
 
-#include <QtCore/QTextStream>
+#include <QTextStream>
 
 #include "temp.h"
 
@@ -35,7 +35,7 @@ class TestTemp : public Temp
 
 public:
 
-    explicit TestTemp(QString *tempString, uint index = 0, Hwmon *parent = Q_NULLPTR);
+    explicit TestTemp(QString *tempString, uint index = 0, Hwmon *parent = nullptr);
 };
 
 #endif // TESTTEMP_H

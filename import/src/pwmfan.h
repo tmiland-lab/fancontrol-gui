@@ -76,7 +76,7 @@ public:
     explicit PwmFan(uint index, Hwmon *parent, bool device = false);
     virtual ~PwmFan();
 
-    int pwm() const Q_DECL_OVERRIDE { return m_pwm; }
+    int pwm() const override { return m_pwm; }
     Temp * temp() const { return m_temp; }
     bool hasTemp() const { return m_hasTemp; }
     int minTemp() const { return m_minTemp; }
@@ -90,29 +90,28 @@ public:
     TestStatus testStatus() const { return m_testStatus; }
     bool active() const;
     bool testing() const;
-    bool setPwm(int pwm, bool write = true) Q_DECL_OVERRIDE;
-    void setTemp(Temp *temp) { setHasTemp(temp != Q_NULLPTR); if (temp != m_temp) { m_temp = temp; emit tempChanged(); } }
-    void setHasTemp(bool hasTemp) { if (hasTemp != m_hasTemp) { m_hasTemp = hasTemp; emit hasTempChanged(); } }
-    void setMinTemp(int minTemp) { if (minTemp != m_minTemp) { m_minTemp = minTemp; emit minTempChanged(); } }
-    void setMaxTemp(int maxTemp) { if (maxTemp != m_maxTemp) { m_maxTemp = maxTemp; emit maxTempChanged(); } }
+    bool setPwm(int pwm, bool write = true) override;
+    void setTemp(Temp *temp) { setHasTemp(temp != nullptr); if (temp != m_temp) { m_temp = temp; Q_EMIT tempChanged(); } }
+    void setHasTemp(bool hasTemp) { if (hasTemp != m_hasTemp) { m_hasTemp = hasTemp; Q_EMIT hasTempChanged(); } }
+    void setMinTemp(int minTemp) { if (minTemp != m_minTemp) { m_minTemp = minTemp; Q_EMIT minTempChanged(); } }
+    void setMaxTemp(int maxTemp) { if (maxTemp != m_maxTemp) { m_maxTemp = maxTemp; Q_EMIT maxTempChanged(); } }
     void setMinPwm(int minPwm);
     void setMaxPwm(int maxPwm);
-    void setMinStart(int minStart) { if (minStart != m_minStart) { m_minStart = minStart; emit minStartChanged(); } }
-    void setMinStop(int minStop) { if (minStop != m_minStop) { m_minStop = minStop; emit minStopChanged(); } }
-    void setAverage(int average) { if (average != m_average) { m_average = average; emit averageChanged(); } }
+    void setMinStart(int minStart) { if (minStart != m_minStart) { m_minStart = minStart; Q_EMIT minStartChanged(); } }
+    void setMinStop(int minStop) { if (minStop != m_minStop) { m_minStop = minStop; Q_EMIT minStopChanged(); } }
+    void setAverage(int average) { if (average != m_average) { m_average = average; Q_EMIT averageChanged(); } }
     bool setPwmEnable(PwmEnable pwmEnable, bool write = true);
     void setActive(bool active);
-    void toDefault() Q_DECL_OVERRIDE;
-    bool isValid() const Q_DECL_OVERRIDE;
-    void update() Q_DECL_OVERRIDE;
+    void toDefault() override;
+    bool isValid() const override;
+    void update() override;
     void continueTest();
 
     Q_INVOKABLE void test();
     Q_INVOKABLE void abortTest();
 
 
-signals:
-
+Q_SIGNALS:
     void pwmChanged();
     void tempChanged();
     void hasTempChanged();

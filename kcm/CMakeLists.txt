@@ -1,19 +1,17 @@
-set(LIBRARIES Qt5::Core
-              KF5::QuickAddons
-              KF5::CoreAddons
-              KF5::I18n)
+set(KCM_SOURCES src/fancontrolkcm.cpp)
 
-find_package(KF5 COMPONENTS CoreAddons Package Declarative KCMUtils REQUIRED)
+find_package(KF6 REQUIRED COMPONENTS KCMUtils CoreAddons)
 
-ecm_find_qmlmodule(org.kde.kcm 1.0)
+kcmutils_add_qml_kcm(kcm_fancontrol
+    INSTALL_NAMESPACE plasma/kcms/systemsettings
+    SOURCES ${KCM_SOURCES}
+)
 
-add_library(kcm_fancontrol MODULE src/fancontrolkcm.cpp)
-
-target_link_libraries(kcm_fancontrol ${LIBRARIES})
-
-install(TARGETS kcm_fancontrol DESTINATION "${KDE_INSTALL_QTPLUGINDIR}/kcms")
-install(PROGRAMS kcm_fancontrol.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
-
-kpackage_install_package(package org.kde.fancontrol.kcm kcms)
-
-kcoreaddons_desktop_to_json(kcm_fancontrol "kcm_fancontrol.desktop" SERVICE_TYPES kcmodule.desktop)
+target_link_libraries(kcm_fancontrol PRIVATE
+    Qt6::Core
+    Qt6::Quick
+    KF6::CoreAddons
+    KF6::I18n
+    KF6::KCMUtils
+    KF6::KCMUtilsQuick
+)

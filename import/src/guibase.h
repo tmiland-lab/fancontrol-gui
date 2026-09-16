@@ -23,9 +23,9 @@
 #ifndef GUIBASE_H
 #define GUIBASE_H
 
-#include <QtCore/QObject>
-#include <QtCore/QStringListModel>
-#include <QtCore/QUrl>
+#include <QObject>
+#include <QStringListModel>
+#include <QUrl>
 
 #include "loader.h"
 #include "pwmfanmodel.h"
@@ -68,7 +68,7 @@ class GUIBase : public QObject
 
 public:
 
-    explicit GUIBase(QObject *parent = Q_NULLPTR);
+    explicit GUIBase(QObject *parent = nullptr);
     ~GUIBase();
 
     Loader *loader() const { return m_loader; }
@@ -111,8 +111,7 @@ public:
     Q_INVOKABLE void deleteProfile(int, bool updateModel = true);
 
 
-signals:
-
+Q_SIGNALS:
     void minTempChanged();
     void maxTempChanged();
     void serviceNameChanged();

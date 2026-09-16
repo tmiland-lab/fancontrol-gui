@@ -21,8 +21,8 @@
 #ifndef HWMON_H
 #define HWMON_H
 
-#include <QtCore/QObject>
-#include <QtCore/QMap>
+#include <QObject>
+#include <QMap>
 
 
 namespace Fancontrol
@@ -46,7 +46,7 @@ class Hwmon : public QObject
 
 public:
 
-    explicit Hwmon(const QString &path, Loader *parent = Q_NULLPTR);
+    explicit Hwmon(const QString &path, Loader *parent = nullptr);
 
     void initialize();
     QString name() const { return m_name; }
@@ -67,8 +67,7 @@ public:
     void toDefault() const;
 
 
-signals:
-
+Q_SIGNALS:
     void fansChanged();
     void pwmFansChanged();
     void tempsChanged();

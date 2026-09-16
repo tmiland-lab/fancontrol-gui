@@ -22,8 +22,8 @@
 #ifndef FANTEST_H
 #define FANTEST_H
 
-#include <QtCore/QObject>
-#include <QtCore/QString>
+#include <QObject>
+#include <QString>
 
 #include "testfan.h"
 
@@ -35,7 +35,7 @@ class FanTest : public QObject
 {
     Q_OBJECT
 
-private slots:
+private Q_SLOTS:
 
     void initTestCase();
     void cleanupTestCase();

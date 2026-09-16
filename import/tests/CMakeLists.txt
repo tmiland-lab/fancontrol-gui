@@ -1,4 +1,4 @@
-find_package(Qt5 REQUIRED Test)
+find_package(Qt6 REQUIRED Test)
 
 include(ECMAddTests)
 
@@ -22,7 +22,7 @@ set_target_properties(fancontrol_test_lib PROPERTIES CXX_VISIBILITY_PRESET defau
 set_target_properties(fancontrol_test_lib PROPERTIES VISIBILITY_INLINES_HIDDEN OFF)
 target_link_libraries(fancontrol_test_lib PUBLIC ${TESTLIB_LIBS})
 
-set(TEST_LIBS Qt5::Test
+set(TEST_LIBS Qt6::Test
               fancontrol_test_lib)
 
 

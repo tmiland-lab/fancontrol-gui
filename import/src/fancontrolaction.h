@@ -24,7 +24,7 @@
 #define FANCONTROLACTION_H
 
 
-#include <KAuth/KAuthAction>
+#include <KAuth/Action>
 
 
 #ifndef STANDARD_HELPER_ID
@@ -37,7 +37,7 @@ namespace Fancontrol
 
 inline KAuth::Action newFancontrolAction()
 {
-    KAuth::Action action(QStringLiteral(STANDARD_HELPER_ID) + ".action");
+    KAuth::Action action(QStringLiteral(STANDARD_HELPER_ID) + QLatin1String(".action"));
     action.setHelperId(QStringLiteral(STANDARD_HELPER_ID));
 
     return action;

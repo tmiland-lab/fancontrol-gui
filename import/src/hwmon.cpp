@@ -25,10 +25,11 @@
 #include "fan.h"
 #include "pwmfan.h"
 
-#include <QtCore/QDir>
-#include <QtCore/QTextStream>
+#include <QDir>
+#include <QTextStream>
+#include <QRegularExpression>
 
-#include <KI18n/KLocalizedString>
+#include <KLocalizedString>
 
 
 namespace Fancontrol
@@ -50,32 +51,32 @@ Hwmon::Hwmon(const QString &path, Loader *parent) : QObject(parent),
         QDir dir(path);
         if (!dir.isReadable())
         {
-            emit error(i18n("%1 is not readable!", path));
+            Q_EMIT error(i18n("%1 is not readable!", path));
             m_valid = false;
         }
 
         auto success = false;
-        m_index = path.split('/').last().remove(QStringLiteral("hwmon")).toUInt(&success);
+        m_index = path.split(QLatin1Char('/')).last().remove(QStringLiteral("hwmon")).toUInt(&success);
 
         if (!success)
         {
-            emit error(i18n("%1 is invalid!", path));
+            Q_EMIT error(i18n("%1 is invalid!", path));
             m_valid = false;
         }
 
-        auto nameFile = new QFile(path + "/name");
+        auto nameFile = new QFile(path + QLatin1String("/name"));
 
         if (nameFile->open(QFile::ReadOnly))
             m_name = QTextStream(nameFile).readLine();
         else
         {
             delete nameFile;
-            nameFile = new QFile(path + "/device/name");
+            nameFile = new QFile(path + QLatin1String("/device/name"));
 
             if (nameFile->open(QFile::ReadOnly))
                 m_name = QTextStream(nameFile).readLine();
             else
-                m_name = path.split('/').last();
+                m_name = path.split(QLatin1Char('/')).last();
         }
 
         delete nameFile;
@@ -96,17 +97,17 @@ void Hwmon::initialize()
 
         auto str = entry;
         auto success = false;
-        const auto index = str.remove(QRegExp("\\D+")).toUInt(&success);
+        const auto index = str.remove(QRegularExpression(QStringLiteral("\\D+"))).toUInt(&success);
 
         if (!success)
         {
-            emit error(i18n("Not a valid sensor: \'%1\'", entry));
+            Q_EMIT error(i18n("Not a valid sensor: \'%1\'", entry));
             continue;
         }
 
         if (entry.contains(QStringLiteral("fan")))
         {
-            if (QFile::exists(m_path + "/pwm" + QString::number(index)))
+            if (QFile::exists(m_path + QLatin1String("/pwm") + QString::number(index)))
             {
                 if (!m_pwmFans.contains(index))
                 {
@@ -117,10 +118,10 @@ void Hwmon::initialize()
                         connect(newPwmFan, &PwmFan::testStatusChanged, m_parent, &Loader::handleTestStatusChanged);
 
                     m_pwmFans.insert(index, newPwmFan);
-                    emit pwmFansChanged();
+                    Q_EMIT pwmFansChanged();
 
                     m_fans.insert(index, newPwmFan);
-                    emit fansChanged();
+                    Q_EMIT fansChanged();
                 }
             }
             else
@@ -131,7 +132,7 @@ void Hwmon::initialize()
                     connect(this, &Hwmon::sensorsUpdateNeeded, newFan, &Fan::update);
 
                     m_fans.insert(index, newFan);
-                    emit fansChanged();
+                    Q_EMIT fansChanged();
                 }
             }
         }
@@ -144,14 +145,14 @@ void Hwmon::initialize()
                 connect(this, &Hwmon::sensorsUpdateNeeded, newTemp, &Temp::update);
 
                 m_temps.insert(index, newTemp);
-                emit tempsChanged();
+                Q_EMIT tempsChanged();
             }
         }
     }
 
     if (isEmpty())
     {
-        QDir deviceDir(m_path + "/device");
+        QDir deviceDir(m_path + QLatin1String("/device"));
         const auto entries = deviceDir.entryList(QDir::Files | QDir::NoDotAndDotDot);
         for (const auto &entry : entries)
         {
@@ -160,17 +161,17 @@ void Hwmon::initialize()
 
             auto str = entry;
             auto success = false;
-            const auto index = str.remove(QRegExp("\\D+")).toUInt(&success);
+            const auto index = str.remove(QRegularExpression(QStringLiteral("\\D+"))).toUInt(&success);
 
             if (!success)
             {
-                emit error(i18n("Not a valid sensor: \'%1\'", entry));
+                Q_EMIT error(i18n("Not a valid sensor: \'%1\'", entry));
                 continue;
             }
 
             if (entry.contains(QStringLiteral("fan")))
             {
-                if (QFile::exists(m_path + "/device/pwm" + QString::number(index)))
+                if (QFile::exists(m_path + QLatin1String("/device/pwm") + QString::number(index)))
                 {
                     if (!m_pwmFans.contains(index))
                     {
@@ -181,10 +182,10 @@ void Hwmon::initialize()
                             connect(newPwmFan, &PwmFan::testStatusChanged, m_parent, &Loader::handleTestStatusChanged);
 
                         m_pwmFans.insert(index, newPwmFan);
-                        emit pwmFansChanged();
+                        Q_EMIT pwmFansChanged();
 
                         m_fans.insert(index, newPwmFan);
-                        emit fansChanged();
+                        Q_EMIT fansChanged();
                     }
                 }
                 else
@@ -195,7 +196,7 @@ void Hwmon::initialize()
                         connect(this, &Hwmon::sensorsUpdateNeeded, newFan, &Fan::update);
 
                         m_fans.insert(index, newFan);
-                        emit fansChanged();
+                        Q_EMIT fansChanged();
                     }
                 }
             }
@@ -208,7 +209,7 @@ void Hwmon::initialize()
                     connect(this, &Hwmon::sensorsUpdateNeeded, newTemp, &Temp::update);
 
                     m_temps.insert(index, newTemp);
-                    emit tempsChanged();
+                    Q_EMIT tempsChanged();
                 }
             }
         }

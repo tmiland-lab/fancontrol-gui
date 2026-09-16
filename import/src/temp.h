@@ -45,15 +45,14 @@ public:
 
     QString label() const { return m_label; }
     int value() const { return m_value; }
-    QString name() const Q_DECL_OVERRIDE;
-    void setName(const QString &name) Q_DECL_OVERRIDE;
-    void toDefault() Q_DECL_OVERRIDE;
-    bool isValid() const Q_DECL_OVERRIDE;
-    void update() Q_DECL_OVERRIDE;
+    QString name() const override;
+    void setName(const QString &name) override;
+    void toDefault() override;
+    bool isValid() const override;
+    void update() override;
 
 
-signals:
-
+Q_SIGNALS:
     void labelChanged();
     void valueChanged();
 

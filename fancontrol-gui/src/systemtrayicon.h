@@ -1,8 +1,8 @@
 /*
  * Copyright 2018  Malte Veerman <malte.veerman@gmail.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
  * the License or (at your option) version 3 or any later version
  * accepted by the membership of KDE e.V. (or its successor approved
@@ -21,17 +21,17 @@
 #ifndef SYSTEMTRAYICON_H
 #define SYSTEMTRAYICON_H
 
+#include <KStatusNotifierItem>
 
-#include <KNotifications/KStatusNotifierItem>
-
-#include <QtCore/QStringListModel>
-#include <QtWidgets/QMenu>
+#include <QStringListModel>
+#include <QMenu>
 
 
 class SystemTrayIcon : public KStatusNotifierItem
 {
     Q_OBJECT
     Q_PROPERTY(QStringListModel* profileModel READ profileModel WRITE setProfileModel NOTIFY profileModelChanged)
+    Q_PROPERTY(QString tooltipSummary READ tooltipSummary WRITE setTooltipSummary NOTIFY tooltipSummaryChanged)
 
 public:
 
@@ -40,18 +40,26 @@ public:
     QStringListModel *profileModel() const { return m_profileModel; }
     void setProfileModel(QStringListModel *model);
     void setProfiles(const QStringList &profiles);
+    QString tooltipSummary() const { return m_tooltipSummary; }
+    void setTooltipSummary(const QString &summary);
 
 
-signals:
-
+Q_SIGNALS:
     void activateProfile(QString profile);
+    void activateService(bool active);
+    void enableService(bool enabled);
     void profileModelChanged();
+    void tooltipSummaryChanged();
 
 
 private:
 
     QStringListModel *m_profileModel;
     QMenu *m_profilesMenu;
+    QMenu *m_serviceMenu;
+    QString m_tooltipSummary;
+    bool m_serviceActive = true;
+    bool m_serviceEnabled = true;
 };
 
 #endif // SYSTEMTRAYICON_H

@@ -19,18 +19,18 @@
 
 #include "helper.h"
 
-#include <QtCore/QFile>
-#include <QtCore/QTextStream>
-#include <QtCore/QFileInfo>
+#include <QFile>
+#include <QTextStream>
+#include <QFileInfo>
 
-#include <KAuth/KAuthHelperSupport>
-#include <KI18n/KLocalizedString>
+#include <KAuth/HelperSupport>
+#include <KLocalizedString>
 
 #ifndef NO_SYSTEMD
-#include <QtDBus/QDBusInterface>
-#include <QtDBus/QDBusMetaType>
-#include <QtDBus/QDBusReply>
-#include <QtDBus/QDBusVariant>
+#include <QDBusInterface>
+#include <QDBusMetaType>
+#include <QDBusReply>
+#include <QDBusVariant>
 
 
 #ifndef STANDARD_HELPER_ID
@@ -75,7 +75,7 @@ ActionReply Helper::action(const QVariantMap &arguments)
     ActionReply reply;
 
 #ifndef NO_SYSTEMD
-    if (arguments[QStringLiteral("action")] == "dbusaction")
+    if (arguments[QStringLiteral("action")].toString() == QLatin1String("dbusaction"))
     {
         qDBusRegisterMetaType<StringStruct>();
         qDBusRegisterMetaType<StringStructArray>();
@@ -170,7 +170,7 @@ ActionReply Helper::action(const QVariantMap &arguments)
     }
     else
 #endif
-    if (arguments[QStringLiteral("action")] == "read")
+    if (arguments[QStringLiteral("action")].toString() == QLatin1String("read"))
     {
         const auto filename = arguments[QStringLiteral("filename")].toString();
 
@@ -196,7 +196,7 @@ ActionReply Helper::action(const QVariantMap &arguments)
         }
     }
 
-    else if (arguments[QStringLiteral("action")] == "write")
+    else if (arguments[QStringLiteral("action")].toString() == QLatin1String("write"))
     {
         const auto filename = arguments[QStringLiteral("filename")].toString();
 

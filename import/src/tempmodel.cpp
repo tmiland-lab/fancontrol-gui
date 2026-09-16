@@ -25,7 +25,7 @@
 #include "temp.h"
 
 
-#define UNIT_SUFFIX "°C"
+#define UNIT_SUFFIX QLatin1String("°C")
 
 
 namespace Fancontrol
@@ -63,7 +63,7 @@ QVariant TempModel::data(const QModelIndex& index, int role) const
     switch (role)
     {
         case DisplayRole:
-            return temp->id() + ": " + QString::number(temp->value()) + UNIT_SUFFIX + "   (" + temp->path() + ")";
+            return QString(temp->id() + QLatin1String(": ") + QString::number(temp->value()) + UNIT_SUFFIX + QLatin1String("   (") + temp->path() + QLatin1String(")"));
 
         case ObjectRole:
             return QVariant::fromValue(temp);
@@ -83,7 +83,7 @@ void TempModel::setTemps(QList<Temp *> temps)
     beginResetModel();
 
     m_temps = temps;
-    emit tempsChanged();
+    Q_EMIT tempsChanged();
 
     for (const auto &temp : temps)
     {
@@ -96,7 +96,7 @@ void TempModel::setTemps(QList<Temp *> temps)
 
 void TempModel::addTemp(Temp *newTemp)
 {
-    for (const auto &oldTemp : qAsConst(m_temps))
+    for (const auto &oldTemp : std::as_const(m_temps))
     {
         if (*oldTemp == *newTemp)
             return;
@@ -110,7 +110,7 @@ void TempModel::addTemp(Temp *newTemp)
 
     beginInsertRows(QModelIndex(), index, index);
     m_temps = newTemps;
-    emit tempsChanged();
+    Q_EMIT tempsChanged();
     endInsertRows();
 }
 
@@ -131,7 +131,7 @@ void TempModel::updateTemp(Temp *temp)
     if (i == -1)
         return;
 
-    emit dataChanged(index(i, 0), index(i, 0), QVector<int>{ DisplayRole });
+    Q_EMIT dataChanged(index(i, 0), index(i, 0), QVector<int>{ DisplayRole });
 }
 
 void TempModel::updateTemp()
@@ -143,7 +143,7 @@ void TempModel::updateTemp()
 
 void TempModel::updateAll()
 {
-    emit dataChanged(index(0, 0), index(m_temps.size(), 0), QVector<int>{ DisplayRole });
+    Q_EMIT dataChanged(index(0, 0), index(m_temps.size(), 0), QVector<int>{ DisplayRole });
 }
 
 QObject * TempModel::temp(int index) const

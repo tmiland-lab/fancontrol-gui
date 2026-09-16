@@ -22,8 +22,8 @@
 #ifndef TEMPTEST_H
 #define TEMPTEST_H
 
-#include <QtCore/QObject>
-#include <QtCore/QString>
+#include <QObject>
+#include <QString>
 
 #include "testtemp.h"
 
@@ -32,7 +32,7 @@ class TempTest : public QObject
 {
     Q_OBJECT
 
-private slots:
+private Q_SLOTS:
 
     void initTestCase();
     void cleanupTestCase();

@@ -22,8 +22,8 @@
 #ifndef PWMFANTEST_H
 #define PWMFANTEST_H
 
-#include <QtCore/QObject>
-#include <QtCore/QString>
+#include <QObject>
+#include <QString>
 
 #include "testpwmfan.h"
 
@@ -32,7 +32,7 @@ class PwmFanTest : public QObject
 {
     Q_OBJECT
 
-private slots:
+private Q_SLOTS:
 
     void initTestCase();
     void cleanupTestCase();

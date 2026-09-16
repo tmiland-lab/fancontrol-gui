@@ -21,6 +21,8 @@
 
 #include "testfan.h"
 
+#include <QIODevice>
+
 
 TestFan::TestFan(QString *rpmString, uint index, Hwmon *parent) : Fan(index, parent)
 {

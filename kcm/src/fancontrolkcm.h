@@ -22,28 +22,29 @@
 #ifndef FANCONTROLKCM_H
 #define FANCONTROLKCM_H
 
-#include <KDeclarative/KQuickAddons/ConfigModule>
+#include <QObject>
+#include <QVariantList>
+#include <KPluginMetaData>
+#include <kquickconfigmodule.h>
 
 
-using namespace KQuickAddons;
-
-class FancontrolKCM : public ConfigModule
+class FancontrolKCM : public KQuickConfigModule
 {
     Q_OBJECT
 
 public:
 
-    explicit FancontrolKCM(QObject *parent, const QVariantList &args = QVariantList());
+    explicit FancontrolKCM(QObject *parent, const KPluginMetaData &metaData);
 
 
-public slots:
+public:
 
-    void load() Q_DECL_OVERRIDE;
-    void save() Q_DECL_OVERRIDE;
-    void defaults() Q_DECL_OVERRIDE;
+    void load() override;
+    void save() override;
+    void defaults() override;
 
 
-signals:
+Q_SIGNALS:
 
     void aboutToSave();
     void aboutToLoad();
