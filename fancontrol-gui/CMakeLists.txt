@@ -7,7 +7,8 @@ set(LIBRARIES Qt6::Gui
               KF6::DBusAddons
               KF6::Package
               KF6::I18n
-              KF6::Config
+              KF6::ConfigCore
+              KF6::ConfigGui
               KF6::Notifications
               KF6::StatusNotifierItem)
 
