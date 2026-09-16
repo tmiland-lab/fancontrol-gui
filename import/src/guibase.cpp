@@ -24,11 +24,12 @@
 
 #include "config.h"
 #include "hwmon.h"
-
-#include <QLocale>
-#include <QDebug>
+#include "temp.h"
 
 #include <KLocalizedString>
+#include <KNotification>
+#include <QDebug>
+#include <QLocale>
 
 
 namespace Fancontrol
@@ -44,7 +45,9 @@ GUIBase::GUIBase(QObject *parent) : QObject(parent),
     m_configValid(false),
     m_pwmFanModel(new PwmFanModel(this)),
     m_tempModel(new TempModel(this)),
-    m_profileModel(new QStringListModel(this))
+    m_profileModel(new QStringListModel(this)),
+    m_highestTemp(-273.0),
+    m_temperatureAlarm(false)
 {
     connect(m_loader, &Loader::needsSaveChanged, this, &GUIBase::needsApplyChanged);
     connect(m_loader, &Loader::configChanged, this, &GUIBase::currentProfileChanged);
@@ -54,6 +57,9 @@ GUIBase::GUIBase(QObject *parent) : QObject(parent),
     connect(m_com, &SystemdCommunicator::needsApplyChanged, this, &GUIBase::needsApplyChanged);
 #endif
 
+    m_alertTimer.setInterval(5000);
+    connect(&m_alertTimer, &QTimer::timeout, this, &GUIBase::checkTemperatures);
+
     m_loader->parseHwmons();
 
     const auto hwmons = m_loader->hwmons();
@@ -62,6 +68,8 @@ GUIBase::GUIBase(QObject *parent) : QObject(parent),
         m_pwmFanModel->addPwmFans(hwmon->pwmFans().values());
         m_tempModel->addTemps(hwmon->temps().values());
     }
+
+    m_alertTimer.start();
 }
 
 GUIBase::~GUIBase()
@@ -100,6 +108,8 @@ void GUIBase::load()
     Q_EMIT minTempChanged();
     Q_EMIT maxTempChanged();
     Q_EMIT configUrlChanged();
+    Q_EMIT alertEnabledChanged();
+    Q_EMIT alertThresholdChanged();
 }
 
 qreal GUIBase::maxTemp() const
@@ -203,6 +213,95 @@ void GUIBase::setStartMinimized(bool sm)
     Config::instance()->setCurrentGroup(QStringLiteral("preferences"));
     Config::instance()->findItem(QStringLiteral("StartMinimized"))->setProperty(sm);
     Q_EMIT startMinimizedChanged();
+}
+
+bool GUIBase::alertEnabled() const
+{
+    Config::instance()->setCurrentGroup(QStringLiteral("preferences"));
+    return Config::instance()->findItem(QStringLiteral("AlertEnabled"))->property().toBool();
+}
+
+void GUIBase::setAlertEnabled(bool enabled)
+{
+    if (alertEnabled() == enabled)
+        return;
+
+    Config::instance()->setCurrentGroup(QStringLiteral("preferences"));
+    Config::instance()->findItem(QStringLiteral("AlertEnabled"))->setProperty(enabled);
+    Q_EMIT alertEnabledChanged();
+}
+
+double GUIBase::alertThreshold() const
+{
+    Config::instance()->setCurrentGroup(QStringLiteral("preferences"));
+    return Config::instance()->findItem(QStringLiteral("AlertThreshold"))->property().toDouble();
+}
+
+void GUIBase::setAlertThreshold(double threshold)
+{
+    if (qFuzzyCompare(alertThreshold(), threshold))
+        return;
+
+    Config::instance()->setCurrentGroup(QStringLiteral("preferences"));
+    Config::instance()->findItem(QStringLiteral("AlertThreshold"))->setProperty(threshold);
+    Q_EMIT alertThresholdChanged();
+}
+
+void GUIBase::checkTemperatures()
+{
+    double highest = -273.0;
+    QString sensor;
+
+    const auto hwmons = m_loader->hwmons();
+    for (const auto &hwmon : hwmons)
+    {
+        const auto temps = hwmon->temps().values();
+        for (const auto &temp : temps)
+        {
+            if (!temp)
+                continue;
+
+            const auto value = static_cast<double>(temp->value());
+            if (value > highest)
+            {
+                highest = value;
+                sensor = temp->label();
+            }
+        }
+    }
+
+    if (!qFuzzyCompare(highest, m_highestTemp))
+    {
+        m_highestTemp = highest;
+        Q_EMIT highestTempChanged();
+    }
+
+    const bool alarm = alertEnabled() && highest >= alertThreshold();
+    if (alarm != m_temperatureAlarm)
+    {
+        m_temperatureAlarm = alarm;
+        m_alarmSensor = sensor;
+        Q_EMIT temperatureAlarmChanged();
+
+        if (alarm)
+        {
+            auto notification = new KNotification(QStringLiteral("fancontrol-temperature-alarm"), KNotification::CloseOnTimeout, this);
+            notification->setTitle(i18n("Temperature alarm"));
+            notification->setText(i18n("%1 has reached %2°C, which is above the alert threshold of %3°C.", sensor, qRound(highest), qRound(alertThreshold())));
+            notification->setUrgency(KNotification::CriticalUrgency);
+            notification->setIconName(QStringLiteral("dialog-warning"));
+            notification->sendEvent();
+        }
+    }
+}
+
+void GUIBase::applyAndRestart()
+{
+    apply();
+
+#ifndef NO_SYSTEMD
+    m_com->restartService();
+#endif
 }
 
 bool GUIBase::needsApply() const

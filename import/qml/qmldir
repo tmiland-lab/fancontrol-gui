@@ -9,6 +9,7 @@ ErrorDialog 1.0 ErrorDialog.qml
 ProfilesDialog 1.0 ProfilesDialog.qml
 SettingsForm 1.0 SettingsForm.qml
 TemperatureTimeline 1.0 TemperatureTimeline.qml
+TemperatureOverview 1.0 TemperatureOverview.qml
 PwmHistory 1.0 PwmHistory.qml
 FanCurvePreset 1.0 FanCurvePreset.qml
 

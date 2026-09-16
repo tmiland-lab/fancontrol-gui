@@ -56,6 +56,8 @@ private:
     int m_currentProfile;
     bool m_showTray;
     bool m_startMinimized;
+    bool m_alertEnabled;
+    double m_alertThreshold;
 };
 
 }

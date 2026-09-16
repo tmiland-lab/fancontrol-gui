@@ -114,6 +114,55 @@ Kirigami.FormLayout {
             }
         }
     }
+
+    Kirigami.Separator {
+        Kirigami.FormData.isSection: true
+        Layout.fillWidth: true
+    }
+    CheckBox {
+        id: alertEnabledBox
+
+        Kirigami.FormData.label: i18n("Warn when a temperature is too high:")
+        Layout.fillWidth: true
+        checked: Fancontrol.Base.alertEnabled
+        onCheckedChanged: Fancontrol.Base.alertEnabled = checked
+
+        Connections {
+            target: Fancontrol.Base
+            function onAlertEnabledChanged() {
+                if (Fancontrol.Base.alertEnabled !== alertEnabledBox.checked)
+                    alertEnabledBox.checked = Fancontrol.Base.alertEnabled;
+            }
+        }
+    }
+    SpinBox {
+        id: alertThresholdBox
+
+        readonly property string suffix: i18n("°C")
+
+        Kirigami.FormData.label: i18n("Alert threshold temperature:")
+        Layout.fillWidth: true
+        from: -273
+        to: 999
+        editable: true
+        enabled: Fancontrol.Base.alertEnabled
+        value: Fancontrol.Base.alertThreshold
+        textFromValue: function(value, locale) { return Number(value).toLocaleString(locale, 'f', 2) + suffix }
+        valueFromText: function(text, locale) { return Number.fromLocaleString(locale, text.replace(suffix, "")); }
+
+        onValueChanged: {
+            Fancontrol.Base.alertThreshold = value;
+        }
+
+        Connections {
+            target: Fancontrol.Base
+            function onAlertThresholdChanged() {
+                if (Fancontrol.Base.alertThreshold !== alertThresholdBox.value)
+                    alertThresholdBox.value = Fancontrol.Base.alertThreshold;
+            }
+        }
+    }
+
     RowLayout {
         Kirigami.FormData.label: i18n("Path to the fancontrol config file:")
         Layout.fillWidth: true
