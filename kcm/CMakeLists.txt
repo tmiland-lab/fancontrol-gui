@@ -6,13 +6,13 @@ set(LIBRARIES Qt6::Core
 
 find_package(KF6 COMPONENTS CoreAddons Package Declarative KCMUtils REQUIRED)
 
-ecm_find_qmlmodule(org.kde.kcm 1.0)
+ecm_find_qmlmodule(org.kde.kcmutils 1.0)
 
 add_library(kcm_fancontrol MODULE src/fancontrolkcm.cpp)
 
 target_link_libraries(kcm_fancontrol PRIVATE ${LIBRARIES})
 
 install(TARGETS kcm_fancontrol DESTINATION "${KDE_INSTALL_QTPLUGINDIR}/kcms")
-install(PROGRAMS kcm_fancontrol.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
+install(PROGRAMS kcm_fancontrol.desktop DESTINATION ${KDE_INSTALL_KSERVICESDIR})
 
 kpackage_install_package(package org.kde.fancontrol.kcm kcms)

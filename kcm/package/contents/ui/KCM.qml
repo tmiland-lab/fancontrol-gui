@@ -23,7 +23,7 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
 import QtQuick.Dialogs 6
 import org.kde.kirigami 2.14 as Kirigami
-import org.kde.kcm 1.0 as KCM
+import org.kde.kcmutils 1.0 as KCM
 import Fancontrol.Qml 1.0 as Fancontrol
 
 
