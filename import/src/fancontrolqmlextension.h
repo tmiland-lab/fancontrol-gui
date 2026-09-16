@@ -23,6 +23,7 @@
 #define FANCONTROLQMLEXTENSION_H
 
 #include <QQmlExtensionPlugin>
+#include <QJSEngine>
 
 namespace Fancontrol
 {

@@ -19,10 +19,9 @@
  *
  */
 
-#include <QJSEngine>
-#include <qqml.h>
-
 #include "fancontrolqmlextension.h"
+
+#include <qqml.h>
 
 #include "fan.h"
 #include "pwmfan.h"
