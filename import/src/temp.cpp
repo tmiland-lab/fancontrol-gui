@@ -91,7 +91,7 @@ Temp::~Temp()
 
 QString Temp::name() const
 {
-    const auto names = KSharedConfig::openConfig(QStringLiteral("fancontrol-gui"))->group("names");
+    const auto names = KSharedConfig::openConfig(QStringLiteral("fancontrol-gui"))->group(QStringLiteral("names"));
     const auto localNames = names.group(parent() ? parent()->name() : QStringLiteral(TEST_HWMON_NAME));
     const auto name = localNames.readEntry(QLatin1String("temp") + QString::number(index()), QString());
 
@@ -107,7 +107,7 @@ QString Temp::name() const
 
 void Temp::setName(const QString &name)
 {
-    const auto names = KSharedConfig::openConfig(QStringLiteral("fancontrol-gui"))->group("names");
+    const auto names = KSharedConfig::openConfig(QStringLiteral("fancontrol-gui"))->group(QStringLiteral("names"));
     auto localNames = names.group(parent() ? parent()->name() : QStringLiteral(TEST_HWMON_NAME));
 
     if (name != localNames.readEntry(QLatin1String("temp") + QString::number(index()), QString())

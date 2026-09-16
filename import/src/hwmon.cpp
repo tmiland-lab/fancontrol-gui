@@ -56,7 +56,7 @@ Hwmon::Hwmon(const QString &path, Loader *parent) : QObject(parent),
         }
 
         auto success = false;
-        m_index = path.split('/').last().remove(QStringLiteral("hwmon")).toUInt(&success);
+        m_index = path.split(QLatin1Char('/')).last().remove(QStringLiteral("hwmon")).toUInt(&success);
 
         if (!success)
         {
@@ -76,7 +76,7 @@ Hwmon::Hwmon(const QString &path, Loader *parent) : QObject(parent),
             if (nameFile->open(QFile::ReadOnly))
                 m_name = QTextStream(nameFile).readLine();
             else
-                m_name = path.split('/').last();
+                m_name = path.split(QLatin1Char('/')).last();
         }
 
         delete nameFile;

@@ -73,7 +73,7 @@ Fan::~Fan()
 
 QString Fan::name() const
 {
-    const auto names = KSharedConfig::openConfig(QStringLiteral("fancontrol-gui"))->group("names");
+    const auto names = KSharedConfig::openConfig(QStringLiteral("fancontrol-gui"))->group(QStringLiteral("names"));
     const auto localNames = names.group(parent() ? parent()->name() : QStringLiteral(TEST_HWMON_NAME));
     const auto name = localNames.readEntry(QLatin1String("fan") + QString::number(index()), QString());
 
@@ -85,7 +85,7 @@ QString Fan::name() const
 
 void Fan::setName(const QString &name)
 {
-    const auto names = KSharedConfig::openConfig(QStringLiteral("fancontrol-gui"))->group("names");
+    const auto names = KSharedConfig::openConfig(QStringLiteral("fancontrol-gui"))->group(QStringLiteral("names"));
     auto localNames = names.group(parent() ? parent()->name() : QStringLiteral(TEST_HWMON_NAME));
 
     if (name != localNames.readEntry(QLatin1String("fan") + QString::number(index()), QString())

@@ -161,7 +161,7 @@ QPair<uint, uint> Loader::getEntryNumbers(const QString &entry)
     if (entry.isEmpty())
         return QPair<uint, uint>(0, 0);
 
-    auto list = entry.split('/', Qt::SkipEmptyParts);
+    auto list = entry.split(QLatin1Char('/'), Qt::SkipEmptyParts);
     if (list.size() < 2)
     {
         Q_EMIT error(i18n("Invalid entry: \'%1\'", entry));
@@ -256,10 +256,10 @@ bool Loader::parseConfig(QString config)
         {
             line.remove(QStringLiteral("FCTEMPS="));
             line = line.simplified();
-            const auto fctemps = line.split(' ');
+            const auto fctemps = line.split(QLatin1Char(' '));
             for (const auto &fctemp : fctemps)
             {
-                const auto nameValuePair = fctemp.split('=');
+                const auto nameValuePair = fctemp.split(QLatin1Char('='));
                 if (nameValuePair.size() == 2)
                 {
                     const auto pwmFanString = nameValuePair.at(0);
@@ -290,10 +290,10 @@ bool Loader::parseConfig(QString config)
         {
             line.remove(QStringLiteral("DEVNAME="));
             line = line.simplified();
-            const auto devnames = line.split(' ');
+            const auto devnames = line.split(QLatin1Char(' '));
             for (const auto &devname : devnames)
             {
-                const auto indexNamePair = devname.split('=');
+                const auto indexNamePair = devname.split(QLatin1Char('='));
 
                 if (indexNamePair.size() == 2)
                 {
@@ -314,9 +314,9 @@ bool Loader::parseConfig(QString config)
                         Q_EMIT error(i18n("Invalid DEVNAME: \'%1\'! No hwmon with index %2", devname, index), true);
                         success = false;
                     }
-                    else if (hwmonPointer->name().split('.').first() != name)
+                    else if (hwmonPointer->name().split(QLatin1Char('.')).first() != name)
                     {
-                        Q_EMIT error(i18n("Wrong name for hwmon%1! Should be \'%2\'", index, hwmonPointer->name().split('.').first()), true);
+                        Q_EMIT error(i18n("Wrong name for hwmon%1! Should be \'%2\'", index, hwmonPointer->name().split(QLatin1Char('.')).first()), true);
                         success = false;
                     }
                 }
@@ -381,11 +381,11 @@ void Loader::parseConfigLine(const QString &line, void (PwmFan::*memberSetFuncti
     if (!memberSetFunction)
         return;
 
-    const auto entries = line.split(' ');
+    const auto entries = line.split(QLatin1Char(' '));
 
     for (const auto &entry : entries)
     {
-        const auto fanValuePair = entry.split('=');
+        const auto fanValuePair = entry.split(QLatin1Char('='));
         if (fanValuePair.size() == 2)
         {
             const auto pwmFanString = fanValuePair.at(0);
@@ -670,7 +670,7 @@ QString Loader::createConfig() const
         configFile += QLatin1String("DEVNAME=");
 
         for (const auto &hwmon : std::as_const(usedHwmons))
-            configFile += QLatin1String("hwmon") + QString::number(hwmon->index()) + QLatin1String("=") + hwmon->name().split('.').first() + QChar(QChar::Space);
+            configFile += QLatin1String("hwmon") + QString::number(hwmon->index()) + QLatin1String("=") + hwmon->name().split(QLatin1Char('.')).first() + QChar(QChar::Space);
 
         configFile += QChar(QChar::LineFeed);
 

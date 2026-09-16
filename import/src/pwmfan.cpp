@@ -511,14 +511,14 @@ bool PwmFan::testing() const
 
 bool PwmFan::active() const
 {
-    const auto active = KSharedConfig::openConfig(QStringLiteral("fancontrol-gui"))->group("active");
+    const auto active = KSharedConfig::openConfig(QStringLiteral("fancontrol-gui"))->group(QStringLiteral("active"));
     const auto localActive = active.group(parent() ? parent()->name() : QStringLiteral(TEST_HWMON_NAME));
     return localActive.readEntry(QLatin1String("pwmfan") + QString::number(index()), true);
 }
 
 void PwmFan::setActive(bool a)
 {
-    const auto active = KSharedConfig::openConfig(QStringLiteral("fancontrol-gui"))->group("active");
+    const auto active = KSharedConfig::openConfig(QStringLiteral("fancontrol-gui"))->group(QStringLiteral("active"));
     auto localActive = active.group(parent() ? parent()->name() : QStringLiteral(TEST_HWMON_NAME));
     if (a != localActive.readEntry(QLatin1String("pwmfan") + QString::number(index()), true))
     {
