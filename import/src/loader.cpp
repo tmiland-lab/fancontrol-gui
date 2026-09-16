@@ -81,12 +81,12 @@ void Loader::parseHwmons(QString path)
 
     else if (hwmonDir.exists())
     {
-        emit error(i18n("Hwmon path is not readable: \'%1\'", path), true);
+        Q_EMIT error(i18n("Hwmon path is not readable: \'%1\'", path), true);
         return;
     }
     else
     {
-        emit error(i18n("Hwmon path does not exist: \'%1\'", path), true);
+        Q_EMIT error(i18n("Hwmon path does not exist: \'%1\'", path), true);
         return;
     }
 
@@ -106,7 +106,7 @@ void Loader::parseHwmons(QString path)
 
         if (m_hwmons.contains(newHwmon->index()))
         {
-            emit error(i18n("An Hwmon with index %1 already exists.", newHwmon->index()));
+            Q_EMIT error(i18n("An Hwmon with index %1 already exists.", newHwmon->index()));
             continue;
         }
 
@@ -114,12 +114,12 @@ void Loader::parseHwmons(QString path)
         {
             connect(this, &Loader::sensorsUpdateNeeded, newHwmon, &Hwmon::sensorsUpdateNeeded);
             m_hwmons.insert(newHwmon->index(), newHwmon);
-            emit hwmonsChanged();
+            Q_EMIT hwmonsChanged();
         }
         else
         {
             delete newHwmon;
-            emit error(i18n("Invalid hwmon found at: %1", hwmonPath));
+            Q_EMIT error(i18n("Invalid hwmon found at: %1", hwmonPath));
         }
     }
 
@@ -164,7 +164,7 @@ QPair<uint, uint> Loader::getEntryNumbers(const QString &entry)
     auto list = entry.split('/', Qt::SkipEmptyParts);
     if (list.size() < 2)
     {
-        emit error(i18n("Invalid entry: \'%1\'", entry));
+        Q_EMIT error(i18n("Invalid entry: \'%1\'", entry));
         return QPair<uint, uint>(0, 0);
     }
     auto &hwmon = list.first();
@@ -172,12 +172,12 @@ QPair<uint, uint> Loader::getEntryNumbers(const QString &entry)
 
     if (!hwmon.startsWith(QStringLiteral("hwmon")))
     {
-        emit error(i18n("Invalid entry: \'%1\'", entry));
+        Q_EMIT error(i18n("Invalid entry: \'%1\'", entry));
         return QPair<uint, uint>(0, 0);
     }
     if (!sensor.contains(QRegularExpression(QStringLiteral("^(pwm|fan|temp)\\d+"))))
     {
-        emit error(i18n("Invalid entry: \'%1\'", entry));
+        Q_EMIT error(i18n("Invalid entry: \'%1\'", entry));
         return QPair<uint, uint>(0, 0);
     }
 
@@ -190,13 +190,13 @@ QPair<uint, uint> Loader::getEntryNumbers(const QString &entry)
     const auto hwmonResult = hwmon.toUInt(&success);
     if (!success)
     {
-        emit error(i18n("Invalid entry: \'%1\'", entry));
+        Q_EMIT error(i18n("Invalid entry: \'%1\'", entry));
         return QPair<uint, uint>(0, 0);
     }
     const auto sensorResult = sensor.toUInt(&success);
     if (!success)
     {
-        emit error(i18n("Invalid entry: \'%1\'", entry));
+        Q_EMIT error(i18n("Invalid entry: \'%1\'", entry));
         return QPair<uint, uint>(0, 0);
     }
 
@@ -248,7 +248,7 @@ bool Loader::parseConfig(QString config)
                 setInterval(interval, false);
             else
             {
-                emit error(i18n("Unable to parse interval line: \'%1\'", line), true);
+                Q_EMIT error(i18n("Unable to parse interval line: \'%1\'", line), true);
                 success = false;
             }
         }
@@ -276,14 +276,14 @@ bool Loader::parseConfig(QString config)
                     else
                     {
                         if (!pwmPointer)
-                            emit error(i18n("Invalid fan entry: \'%1\'", pwmFanString), true);
+                            Q_EMIT error(i18n("Invalid fan entry: \'%1\'", pwmFanString), true);
 
                         if (!tempPointer)
-                            emit error(i18n("Invalid temp entry: \'%1\'", tempString), true);
+                            Q_EMIT error(i18n("Invalid temp entry: \'%1\'", tempString), true);
                     }
                 }
                 else
-                    emit error(i18n("Invalid entry: \'%1\'", fctemp), true);
+                    Q_EMIT error(i18n("Invalid entry: \'%1\'", fctemp), true);
             }
         }
         else if (line.startsWith(QStringLiteral("DEVNAME=")))
@@ -305,23 +305,23 @@ bool Loader::parseConfig(QString config)
 
                     if (!intSuccess)
                     {
-                        emit error(i18n("Invalid DEVNAME: \'%1\'!", devname), true);
+                        Q_EMIT error(i18n("Invalid DEVNAME: \'%1\'!", devname), true);
                         success = false;
                     }
 
                     if (!hwmonPointer)
                     {
-                        emit error(i18n("Invalid DEVNAME: \'%1\'! No hwmon with index %2", devname, index), true);
+                        Q_EMIT error(i18n("Invalid DEVNAME: \'%1\'! No hwmon with index %2", devname, index), true);
                         success = false;
                     }
                     else if (hwmonPointer->name().split('.').first() != name)
                     {
-                        emit error(i18n("Wrong name for hwmon%1! Should be \'%2\'", index, hwmonPointer->name().split('.').first()), true);
+                        Q_EMIT error(i18n("Wrong name for hwmon%1! Should be \'%2\'", index, hwmonPointer->name().split('.').first()), true);
                         success = false;
                     }
                 }
                 else
-                    emit error(i18n("Invalid DEVNAME: \'%1\'!", devname), true);
+                    Q_EMIT error(i18n("Invalid DEVNAME: \'%1\'!", devname), true);
             }
         }
         else if (line.startsWith(QStringLiteral("MINTEMP=")))
@@ -362,7 +362,7 @@ bool Loader::parseConfig(QString config)
         else if (!line.startsWith(QStringLiteral("DEVPATH=")) &&
             !line.startsWith(QStringLiteral("FCFANS=")))
         {
-            emit error(i18n("Unrecognized line in config: \'%1\'", line), true);
+            Q_EMIT error(i18n("Unrecognized line in config: \'%1\'", line), true);
             success = false;
         }
     }
@@ -399,13 +399,13 @@ void Loader::parseConfigLine(const QString &line, void (PwmFan::*memberSetFuncti
                 if (pwmFanPointer)
                     (pwmFanPointer->*memberSetFunction)(value);
                 else
-                    emit error(i18n("Invalid fan entry: \'%1\'", pwmFanString), true);
+                    Q_EMIT error(i18n("Invalid fan entry: \'%1\'", pwmFanString), true);
             }
             else
-                emit error(i18n("%1 is not an unsigned integer!", valueString));
+                Q_EMIT error(i18n("%1 is not an unsigned integer!", valueString));
         }
         else
-            emit error(i18n("Invalid entry to parse: \'%1\'", entry));
+            Q_EMIT error(i18n("Invalid entry to parse: \'%1\'", entry));
     }
 }
 
@@ -421,16 +421,16 @@ bool Loader::load(const QUrl &url)
 
         else
         {
-            emit error(i18n("\'%1\' is not a local file!", url.toDisplayString()));
+            Q_EMIT error(i18n("\'%1\' is not a local file!", url.toDisplayString()));
             return false;
         }
     }
     else
     {
-        emit error(i18n("\'%1\' is not a valid url!", url.toDisplayString()));
+        Q_EMIT error(i18n("\'%1\' is not a valid url!", url.toDisplayString()));
         return false;
     }
-    emit info(i18n("Loading config file: \'%1\'", filePath));
+    Q_EMIT info(i18n("Loading config file: \'%1\'", filePath));
 
     watchPath(filePath);
 
@@ -460,18 +460,18 @@ bool Loader::load(const QUrl &url)
                 {
                     if (job->error() == 4)
                     {
-                        emit info(i18n("Loading of file aborted by user"));
+                        Q_EMIT info(i18n("Loading of file aborted by user"));
                         return false;
                     }
 
-                    emit error(i18n("KAuth::ExecuteJob error! Code: %1\nAdditional Info: %2", job->error(), job->errorString()), true);
+                    Q_EMIT error(i18n("KAuth::ExecuteJob error! Code: %1\nAdditional Info: %2", job->error(), job->errorString()), true);
                     return false;
                 }
                 else
                     fileContent = job->data().value(QStringLiteral("content")).toString();
             }
             else
-                emit error(i18n("Action not supported! Try running the application as root."), true);
+                Q_EMIT error(i18n("Action not supported! Try running the application as root."), true);
         }
 
         bool success = load(fileContent);
@@ -479,22 +479,22 @@ bool Loader::load(const QUrl &url)
         if (!url.isEmpty())
         {
             m_configUrl = url;
-            emit configUrlChanged();
+            Q_EMIT configUrlChanged();
         }
 
         return success;
     }
     else
     {
-        emit error(i18n("File does not yet exist: \'%1\'" ,filePath));
+        Q_EMIT error(i18n("File does not yet exist: \'%1\'" ,filePath));
 
         m_loadedConfig = QString();
-        emit needsSaveChanged();
+        Q_EMIT needsSaveChanged();
 
         if (!url.isEmpty())
         {
             m_configUrl = url;
-            emit configUrlChanged();
+            Q_EMIT configUrlChanged();
         }
 
         return false;
@@ -510,14 +510,14 @@ bool Loader::load(const QString& config)
 
     if (config.isEmpty())
     {
-        emit error(i18n("Cannot load empty config."), true);
+        Q_EMIT error(i18n("Cannot load empty config."), true);
         return false;
     }
 
     bool success = parseConfig(config);
 
     m_loadedConfig = config;
-    emit needsSaveChanged();
+    Q_EMIT needsSaveChanged();
 
     return success;
 }
@@ -534,11 +534,11 @@ bool Loader::save(const QUrl &url)
     {
         filePath = url.toLocalFile();
         m_configUrl = url;
-        emit configUrlChanged();
+        Q_EMIT configUrlChanged();
     }
     else
     {
-        emit error(i18n("\'%1\' is not a local file!", url.toDisplayString()), true);
+        Q_EMIT error(i18n("\'%1\' is not a local file!", url.toDisplayString()), true);
         return false;
     }
     QFile file(filePath);
@@ -550,14 +550,14 @@ bool Loader::save(const QUrl &url)
 
         if (m_config == fileContent)
         {
-            emit info(i18n("No changes made to config"));
+            Q_EMIT info(i18n("No changes made to config"));
             return false;
         }
         else
             file.close();
     }
 
-    emit info(i18n("Saving config to \'%1\'", filePath));
+    Q_EMIT info(i18n("Saving config to \'%1\'", filePath));
     if (file.open(QFile::WriteOnly | QFile::Text))
     {
         QTextStream stream(&file);
@@ -581,23 +581,23 @@ bool Loader::save(const QUrl &url)
             {
                 if (job->error() == 4)
                 {
-                    emit info(i18n("Saving of file aborted by user"));
+                    Q_EMIT info(i18n("Saving of file aborted by user"));
                     return false;
                 }
 
-                emit error(i18n("Error executing action. Code %1; %2; %3", job->error(), job->errorString(), job->errorText()), true);
+                Q_EMIT error(i18n("Error executing action. Code %1; %2; %3", job->error(), job->errorString(), job->errorText()), true);
                 return false;
             }
         }
         else
         {
-            emit error(i18n("Action not supported! Try running the application as root."), true);
+            Q_EMIT error(i18n("Action not supported! Try running the application as root."), true);
             return false;
         }
     }
 
     m_loadedConfig = m_config;
-    emit configChanged();
+    Q_EMIT configChanged();
 
     return true;
 }
@@ -617,8 +617,8 @@ void Loader::updateConfig()
     if (config != m_config)
     {
         m_config = config;
-        emit configChanged();
-        emit needsSaveChanged();
+        Q_EMIT configChanged();
+        Q_EMIT needsSaveChanged();
     }
 }
 
@@ -797,14 +797,14 @@ void Loader::setInterval(int interval, bool writeNewConfig)
 {
     if (interval < 1)
     {
-        emit error(i18n("Interval must be greater or equal to one!"), true);
+        Q_EMIT error(i18n("Interval must be greater or equal to one!"), true);
         return;
     }
 
     if (interval != m_interval)
     {
         m_interval = interval;
-        emit intervalChanged();
+        Q_EMIT intervalChanged();
 
         if (writeNewConfig)
             updateConfig();
@@ -848,7 +848,7 @@ void Loader::handleTestStatusChanged()
     if (!testing && !m_reactivateAfterTesting)
         return;
 
-    emit requestSetServiceActive(!testing);
+    Q_EMIT requestSetServiceActive(!testing);
 }
 
 void Loader::setRestartServiceAfterTesting(bool restart)
@@ -857,7 +857,7 @@ void Loader::setRestartServiceAfterTesting(bool restart)
         return;
 
     m_reactivateAfterTesting = restart;
-    emit restartServiceAfterTestingChanged();
+    Q_EMIT restartServiceAfterTestingChanged();
 }
 
 void Loader::toDefault()

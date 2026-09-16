@@ -80,7 +80,7 @@ void PwmFanModel::setPwmFans(QList<PwmFan *> fans)
     beginResetModel();
 
     m_fans = fans;
-    emit fansChanged();
+    Q_EMIT fansChanged();
 
     for (const auto &fan : fans)
         connect(fan, &PwmFan::nameChanged, this, static_cast<void(PwmFanModel::*)()>(&PwmFanModel::updateFan));
@@ -104,7 +104,7 @@ void PwmFanModel::addPwmFan(PwmFan* newFan)
 
     beginInsertRows(QModelIndex(), index, index);
     m_fans = newFans;
-    emit fansChanged();
+    Q_EMIT fansChanged();
     endInsertRows();
 }
 
@@ -125,7 +125,7 @@ void PwmFanModel::updateFan(PwmFan *fan)
     if (i == -1)
         return;
 
-    emit dataChanged(index(i, 0), index(i, 0), QVector<int>{ DisplayRole });
+    Q_EMIT dataChanged(index(i, 0), index(i, 0), QVector<int>{ DisplayRole });
 }
 
 void PwmFanModel::updateFan()

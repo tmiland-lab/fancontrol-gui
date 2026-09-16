@@ -28,8 +28,6 @@
 #include <kquickconfigmodule.h>
 
 
-using namespace KCMUtils;
-
 class FancontrolKCM : public KQuickConfigModule
 {
     Q_OBJECT
@@ -39,14 +37,14 @@ public:
     explicit FancontrolKCM(QObject *parent, const KPluginMetaData &metaData);
 
 
-public slots:
+public:
 
     void load() override;
     void save() override;
     void defaults() override;
 
 
-signals:
+Q_SIGNALS:
 
     void aboutToSave();
     void aboutToLoad();

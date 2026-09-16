@@ -95,11 +95,11 @@ void GUIBase::load()
     m_com->reset();
 #endif
 
-    emit currentProfileChanged();
-    emit serviceNameChanged();
-    emit minTempChanged();
-    emit maxTempChanged();
-    emit configUrlChanged();
+    Q_EMIT currentProfileChanged();
+    Q_EMIT serviceNameChanged();
+    Q_EMIT minTempChanged();
+    Q_EMIT maxTempChanged();
+    Q_EMIT configUrlChanged();
 }
 
 qreal GUIBase::maxTemp() const
@@ -144,7 +144,7 @@ void GUIBase::setMaxTemp(qreal temp)
     {
         Config::instance()->setCurrentGroup(QStringLiteral("preferences"));
         Config::instance()->findItem(QStringLiteral("MaxTemp"))->setProperty(temp);
-        emit maxTempChanged();
+        Q_EMIT maxTempChanged();
     }
 }
 
@@ -154,7 +154,7 @@ void GUIBase::setMinTemp(qreal temp)
     {
         Config::instance()->setCurrentGroup(QStringLiteral("preferences"));
         Config::instance()->findItem(QStringLiteral("MinTemp"))->setProperty(temp);
-        emit minTempChanged();
+        Q_EMIT minTempChanged();
     }
 }
 
@@ -169,7 +169,7 @@ void GUIBase::setServiceName(const QString& name)
         m_com->setServiceName(name);
 #endif
 
-        emit serviceNameChanged();
+        Q_EMIT serviceNameChanged();
     }
 }
 
@@ -181,7 +181,7 @@ void GUIBase::setConfigUrl(const QUrl &url)
 
         Config::instance()->setCurrentGroup(QStringLiteral("preferences"));
         Config::instance()->findItem(QStringLiteral("ConfigUrl"))->setProperty(url.toString());
-        emit configUrlChanged();
+        Q_EMIT configUrlChanged();
     }
 }
 
@@ -192,7 +192,7 @@ void GUIBase::setShowTray(bool show)
 
     Config::instance()->setCurrentGroup(QStringLiteral("preferences"));
     Config::instance()->findItem(QStringLiteral("ShowTray"))->setProperty(show);
-    emit showTrayChanged();
+    Q_EMIT showTrayChanged();
 }
 
 void GUIBase::setStartMinimized(bool sm)
@@ -202,7 +202,7 @@ void GUIBase::setStartMinimized(bool sm)
 
     Config::instance()->setCurrentGroup(QStringLiteral("preferences"));
     Config::instance()->findItem(QStringLiteral("StartMinimized"))->setProperty(sm);
-    emit startMinimizedChanged();
+    Q_EMIT startMinimizedChanged();
 }
 
 bool GUIBase::needsApply() const
@@ -233,7 +233,7 @@ void GUIBase::apply()
     m_com->apply(configChanged);
 #endif
 
-    emit needsApplyChanged();
+    Q_EMIT needsApplyChanged();
 }
 
 void GUIBase::reset()
@@ -247,7 +247,7 @@ void GUIBase::reset()
     m_com->reset();
 #endif
 
-    emit needsApplyChanged();
+    Q_EMIT needsApplyChanged();
 }
 
 void GUIBase::handleError(const QString &error, bool critical)
@@ -256,12 +256,12 @@ void GUIBase::handleError(const QString &error, bool critical)
         return;
 
     m_error = error;
-    emit errorChanged();
+    Q_EMIT errorChanged();
 
     if (critical)
     {
         qCritical() << error;
-        emit criticalError();
+        Q_EMIT criticalError();
     }
     else
         qWarning() << error;
@@ -335,7 +335,7 @@ void GUIBase::saveProfile(const QString& profileName, bool updateModel)
     profiles.insert(index, m_loader->config());
     Config::instance()->findItem(QStringLiteral("Profiles"))->setProperty(profiles);
 
-    emit currentProfileChanged();
+    Q_EMIT currentProfileChanged();
 
     if (updateModel)
         m_profileModel->setData(m_profileModel->index(index, 0), profileName);
@@ -361,7 +361,7 @@ void GUIBase::deleteProfile(int index, bool updateModel)
     profiles.removeAt(index);
     Config::instance()->findItem(QStringLiteral("Profiles"))->setProperty(profiles);
 
-    emit currentProfileChanged();
+    Q_EMIT currentProfileChanged();
 
     if (updateModel)
         m_profileModel->removeRow(index);

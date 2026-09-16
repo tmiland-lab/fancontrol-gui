@@ -91,7 +91,7 @@ PwmFan::PwmFan(uint index, Hwmon *parent, bool device) : Fan(index, parent, devi
         }
         else
         {
-            emit error(i18n("Can't open pwm file: \'%1\'", pwmFile->fileName()));
+            Q_EMIT error(i18n("Can't open pwm file: \'%1\'", pwmFile->fileName()));
             delete pwmFile;
         }
 
@@ -109,7 +109,7 @@ PwmFan::PwmFan(uint index, Hwmon *parent, bool device) : Fan(index, parent, devi
         }
         else
         {
-            emit error(i18n("Can't open pwm_enable file: \'%1\'", pwmEnableFile->fileName()));
+            Q_EMIT error(i18n("Can't open pwm_enable file: \'%1\'", pwmEnableFile->fileName()));
             delete pwmEnableFile;
         }
     }
@@ -155,7 +155,7 @@ void PwmFan::toDefault()
     if (m_testStatus != NotStarted)
     {
         m_testStatus = NotStarted;
-        emit testStatusChanged();
+        Q_EMIT testStatusChanged();
     }
 
     if (m_pwmStream->device() && m_enableStream->device() && parent())
@@ -184,7 +184,7 @@ void PwmFan::toDefault()
         }
         else
         {
-            emit error(i18n("Can't open pwm file: \'%1\'", pwmFile->fileName()));
+            Q_EMIT error(i18n("Can't open pwm file: \'%1\'", pwmFile->fileName()));
             delete pwmFile;
         }
 
@@ -206,7 +206,7 @@ void PwmFan::toDefault()
         }
         else
         {
-            emit error(i18n("Can't open pwm_enable file: \'%1\'", pwmEnableFile->fileName()));
+            Q_EMIT error(i18n("Can't open pwm_enable file: \'%1\'", pwmEnableFile->fileName()));
             delete pwmEnableFile;
         }
     }
@@ -221,14 +221,14 @@ bool PwmFan::setPwm(int pwm, bool write)
 {
     if (pwm < 0 || pwm > 255)
     {
-        emit error(i18n("Pwm cannot exceed 0-255!"), true);
+        Q_EMIT error(i18n("Pwm cannot exceed 0-255!"), true);
         return false;
     }
 
     if (m_pwm != pwm)
     {
         m_pwm = pwm;
-        emit pwmChanged();
+        Q_EMIT pwmChanged();
 
         if (write)
         {
@@ -258,12 +258,12 @@ bool PwmFan::setPwm(int pwm, bool write)
                             QTimer::singleShot(50, this, [this] (){ setPwmEnable(m_pwmEnable); });
                         }
 
-                        emit error(i18n("Could not set pwm: %1", job->errorText()));
+                        Q_EMIT error(i18n("Could not set pwm: %1", job->errorText()));
                     }
                     update();
                 }
                 else
-                    emit error(i18n("Action not supported! Try running the application as root."), true);
+                    Q_EMIT error(i18n("Action not supported! Try running the application as root."), true);
             }
         }
     }
@@ -275,7 +275,7 @@ bool PwmFan::setPwmEnable(PwmEnable pwmEnable, bool write)
     if (m_pwmEnable != pwmEnable)
     {
         m_pwmEnable = pwmEnable;
-        emit pwmEnableChanged();
+        Q_EMIT pwmEnableChanged();
 
         if (write)
         {
@@ -304,12 +304,12 @@ bool PwmFan::setPwmEnable(PwmEnable pwmEnable, bool write)
                             QTimer::singleShot(50, this, [this] (){ setPwmEnable(m_pwmEnable); });
                         }
 
-                        emit error(i18n("Could not set pwm enable: %1", job->errorText()));
+                        Q_EMIT error(i18n("Could not set pwm enable: %1", job->errorText()));
                     }
                     update();
                 }
                 else
-                    emit error(i18n("Action not supported! Try running the application as root."), true);
+                    Q_EMIT error(i18n("Action not supported! Try running the application as root."), true);
             }
         }
     }
@@ -320,14 +320,14 @@ void PwmFan::setMinPwm(int minPwm)
 {
     if (minPwm < 0 || minPwm > 255)
     {
-        emit error(i18n("MinPwm cannot exceed 0-255!"), true);
+        Q_EMIT error(i18n("MinPwm cannot exceed 0-255!"), true);
         return;
     }
 
     if (minPwm != m_minPwm)
     {
         m_minPwm = minPwm;
-        emit minPwmChanged();
+        Q_EMIT minPwmChanged();
     }
 }
 
@@ -335,14 +335,14 @@ void PwmFan::setMaxPwm(int maxPwm)
 {
     if (maxPwm < 0 || maxPwm > 255)
     {
-        emit error(i18n("MaxPwm cannot exceed 0-255!"), true);
+        Q_EMIT error(i18n("MaxPwm cannot exceed 0-255!"), true);
         return;
     }
 
     if (maxPwm != m_maxPwm)
     {
         m_maxPwm = maxPwm;
-        emit maxPwmChanged();
+        Q_EMIT maxPwmChanged();
     }
 }
 
@@ -359,15 +359,15 @@ void PwmFan::test()
 
             if (!job->exec())
             {
-                emit error(i18n("Authorization error: %1", job->errorText()));
+                Q_EMIT error(i18n("Authorization error: %1", job->errorText()));
                 m_testStatus = Error;
-                emit testStatusChanged();
+                Q_EMIT testStatusChanged();
                 return;
             }
         }
         else
         {
-            emit error(i18n("Action not supported! Try running the application as root."), true);
+            Q_EMIT error(i18n("Action not supported! Try running the application as root."), true);
             return;
         }
     }
@@ -375,7 +375,7 @@ void PwmFan::test()
     setPwm(255, true);
 
     m_testStatus = FindingStop1;
-    emit testStatusChanged();
+    Q_EMIT testStatusChanged();
 
     QTimer::singleShot(500, this, &PwmFan::continueTest);
 //    qDebug() << "Start testing...";
@@ -388,7 +388,7 @@ void PwmFan::abortTest()
 //        qDebug() << "Abort testing";
 
         m_testStatus = Cancelled;
-        emit testStatusChanged();
+        Q_EMIT testStatusChanged();
 
         setPwm(255);
         setPwmEnable(FullSpeed);
@@ -405,7 +405,7 @@ void PwmFan::continueTest()
         if (action.status() != KAuth::Action::AuthorizedStatus)
         {
             m_testStatus = Error;
-            emit testStatusChanged();
+            Q_EMIT testStatusChanged();
             return;
         }
     }
@@ -419,13 +419,13 @@ void PwmFan::continueTest()
         {
             if (m_pwm == 0)
             {
-                emit error(i18n("Fan never stops."), false);
+                Q_EMIT error(i18n("Fan never stops."), false);
                 setMinStart(0);
                 setMinStop(0);
                 setMinPwm(0);
                 setPwm(255);
                 m_testStatus = Finished;
-                emit testStatusChanged();
+                Q_EMIT testStatusChanged();
                 return;
             }
 
@@ -453,7 +453,7 @@ void PwmFan::continueTest()
             if (m_pwm >= 255)
             {
                 m_testStatus = Finished;
-                emit testStatusChanged();
+                Q_EMIT testStatusChanged();
 
                 m_zeroRpm = 0;
                 setMinStop(255);
@@ -489,7 +489,7 @@ void PwmFan::continueTest()
             else
             {
                 m_testStatus = Finished;
-                emit testStatusChanged();
+                Q_EMIT testStatusChanged();
                 m_zeroRpm = 0;
                 setMinStop(qMin(255, m_pwm + 5));
                 setMinPwm(qMin(m_minPwm, m_minStop));
@@ -523,7 +523,7 @@ void PwmFan::setActive(bool a)
     if (a != localActive.readEntry("pwmfan" + QString::number(index()), true))
     {
         localActive.writeEntry("pwmfan" + QString::number(index()), a);
-        emit activeChanged();
+        Q_EMIT activeChanged();
     }
 }
 

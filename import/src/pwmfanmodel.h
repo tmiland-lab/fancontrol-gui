@@ -58,8 +58,7 @@ public:
     Q_INVOKABLE QObject *fan(int index) const;
 
 
-signals:
-
+Q_SIGNALS:
     void fansChanged();
 
 

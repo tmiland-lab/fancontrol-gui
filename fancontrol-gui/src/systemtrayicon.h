@@ -44,8 +44,7 @@ public:
     void setTooltipSummary(const QString &summary);
 
 
-signals:
-
+Q_SIGNALS:
     void activateProfile(QString profile);
     void activateService(bool active);
     void enableService(bool enabled);

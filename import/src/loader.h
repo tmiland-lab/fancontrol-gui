@@ -108,8 +108,7 @@ private:
     bool m_sensorsDetected;
 
 
-signals:
-
+Q_SIGNALS:
     void configUrlChanged();
     void configChanged();
     void configFileChanged();

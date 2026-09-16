@@ -51,8 +51,7 @@ public:
     virtual bool setPwm(int, bool) { return false; }
 
 
-signals:
-
+Q_SIGNALS:
     void rpmChanged();
 
 

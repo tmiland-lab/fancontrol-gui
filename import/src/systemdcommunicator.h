@@ -56,8 +56,7 @@ public:
     Q_INVOKABLE void reset();
 
 
-signals:
-
+Q_SIGNALS:
     void serviceNameChanged();
     void serviceEnabledChanged();
     void serviceActiveChanged();

@@ -56,8 +56,7 @@ public:
     bool operator!=(const Sensor &other) { return m_path != other.path(); }
 
 
-signals:
-
+Q_SIGNALS:
     void nameChanged();
     void error(QString, bool = false);
 

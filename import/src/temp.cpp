@@ -62,7 +62,7 @@ Temp::Temp(uint index, Hwmon *parent, bool device) :
         else
         {
             delete valueFile;
-            emit error(i18n("Can't open value file: \'%1\'", path + "/temp" + QString::number(index) + "_input"));
+            Q_EMIT error(i18n("Can't open value file: \'%1\'", path + "/temp" + QString::number(index) + "_input"));
         }
 
         if (labelFile->exists())
@@ -73,10 +73,10 @@ Temp::Temp(uint index, Hwmon *parent, bool device) :
                 setId(parent->name() + "/" + m_label);
             }
             else
-                emit error(i18n("Can't open label file: \'%1\'", path + "/temp" + QString::number(index) + "_label"));
+                Q_EMIT error(i18n("Can't open label file: \'%1\'", path + "/temp" + QString::number(index) + "_label"));
         }
         else
-            emit error(i18n("Temp has no label: \'%1\'", path + "/temp" + QString::number(index)));
+            Q_EMIT error(i18n("Temp has no label: \'%1\'", path + "/temp" + QString::number(index)));
 
         delete labelFile;
     }
@@ -114,7 +114,7 @@ void Temp::setName(const QString &name)
         && !name.isEmpty())
     {
         localNames.writeEntry("temp" + QString::number(index()), name);
-        emit nameChanged();
+        Q_EMIT nameChanged();
     }
 }
 
@@ -139,7 +139,7 @@ void Temp::toDefault()
                 m_value /= 1000;
             }
             else
-                emit error(i18n("Can't open value file: \'%1\'", valueFile->fileName()));
+                Q_EMIT error(i18n("Can't open value file: \'%1\'", valueFile->fileName()));
         }
     }
 }
@@ -152,12 +152,12 @@ void Temp::update()
     const auto value = m_valueStream->readAll().toInt(&success) / 1000;
 
     if (!success)
-        emit error(i18n("Can't update value of temp: \'%1\'", id()));
+        Q_EMIT error(i18n("Can't update value of temp: \'%1\'", id()));
 
     if (value != m_value)
     {
         m_value = value;
-        emit valueChanged();
+        Q_EMIT valueChanged();
     }
 }
 

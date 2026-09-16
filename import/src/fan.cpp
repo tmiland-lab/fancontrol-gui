@@ -58,7 +58,7 @@ Fan::Fan(uint index, Hwmon *parent, bool device) :
         }
         else
         {
-            emit error(i18n("Can't open rpm file: \'%1\'", rpmFile->fileName()));
+            Q_EMIT error(i18n("Can't open rpm file: \'%1\'", rpmFile->fileName()));
             delete rpmFile;
         }
     }
@@ -92,7 +92,7 @@ void Fan::setName(const QString &name)
         && !name.isEmpty())
     {
         localNames.writeEntry("fan" + QString::number(index()), name);
-        emit nameChanged();
+        Q_EMIT nameChanged();
     }
 }
 
@@ -117,7 +117,7 @@ void Fan::toDefault()
             }
             else
             {
-                emit error(i18n("Can't open rpm file: \'%1\'", rpmFile->fileName()));
+                Q_EMIT error(i18n("Can't open rpm file: \'%1\'", rpmFile->fileName()));
                 delete rpmFile;
             }
         }
@@ -133,7 +133,7 @@ void Fan::update()
     if (rpm != m_rpm)
     {
         m_rpm = rpm;
-        emit rpmChanged();
+        Q_EMIT rpmChanged();
     }
 }
 

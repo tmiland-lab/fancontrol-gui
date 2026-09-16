@@ -67,7 +67,7 @@ public:
             m_pwmFans.insert(newPwmFan->index(), newPwmFan);
             m_fans.insert(newPwmFan->index(), newPwmFan);
         }
-        emit pwmFansChanged();
+        Q_EMIT pwmFansChanged();
 
         for (auto i=m_pwmFans.size()-1; i<rpms.size(); i++)
         {
@@ -76,7 +76,7 @@ public:
 
             m_fans.insert(newFan->index(), newFan);
         }
-        emit fansChanged();
+        Q_EMIT fansChanged();
 
         for (auto i=0; i<temps.size(); i++)
         {
@@ -85,7 +85,7 @@ public:
 
             m_temps.insert(newTemp->index(), newTemp);
         }
-        emit tempsChanged();
+        Q_EMIT tempsChanged();
 
         m_valid = true;
     }
@@ -103,7 +103,7 @@ public:
     {
         connect(this, &Loader::sensorsUpdateNeeded, hwmon, &Hwmon::sensorsUpdateNeeded);
         m_hwmons.insert(hwmon->index(), hwmon);
-        emit hwmonsChanged();
+        Q_EMIT hwmonsChanged();
     }
     void parse(const QString &string)
     {

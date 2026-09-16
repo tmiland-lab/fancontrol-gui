@@ -111,8 +111,7 @@ public:
     Q_INVOKABLE void deleteProfile(int, bool updateModel = true);
 
 
-signals:
-
+Q_SIGNALS:
     void minTempChanged();
     void maxTempChanged();
     void serviceNameChanged();

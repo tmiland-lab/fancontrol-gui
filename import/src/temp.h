@@ -52,8 +52,7 @@ public:
     void update() override;
 
 
-signals:
-
+Q_SIGNALS:
     void labelChanged();
     void valueChanged();
 

@@ -36,13 +36,13 @@ SystemTrayIcon::SystemTrayIcon(QObject *parent) : KStatusNotifierItem(QStringLit
     m_serviceMenu = contextMenu()->addMenu(i18n("Service"));
     auto startStopAction = m_serviceMenu->addAction(i18n("Start/Stop service"));
     connect(startStopAction, &QAction::triggered, this, [this]() {
-        emit activateService(!m_serviceActive);
+        Q_EMIT activateService(!m_serviceActive);
     });
     m_serviceActive = true;
 
     auto enableDisableAction = m_serviceMenu->addAction(i18n("Enable/Disable autostart"));
     connect(enableDisableAction, &QAction::triggered, this, [this]() {
-        emit enableService(!m_serviceEnabled);
+        Q_EMIT enableService(!m_serviceEnabled);
     });
     m_serviceEnabled = true;
 }
@@ -53,7 +53,7 @@ void SystemTrayIcon::setProfileModel(QStringListModel* model)
         return;
 
     m_profileModel = model;
-    emit profileModelChanged();
+    Q_EMIT profileModelChanged();
 
     if (!m_profileModel)
     {
@@ -76,7 +76,7 @@ void SystemTrayIcon::setProfiles(const QStringList& profiles)
     for (const auto &profile : profiles)
     {
         const auto action = m_profilesMenu->addAction(profile);
-        connect(action, &QAction::triggered, this, [this, profile]() { emit activateProfile(profile); });
+        connect(action, &QAction::triggered, this, [this, profile]() { Q_EMIT activateProfile(profile); });
     }
 }
 
@@ -87,5 +87,5 @@ void SystemTrayIcon::setTooltipSummary(const QString &summary)
 
     m_tooltipSummary = summary;
     setTitle(summary);
-    emit tooltipSummaryChanged();
+    Q_EMIT tooltipSummaryChanged();
 }

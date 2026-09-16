@@ -64,8 +64,7 @@ protected:
     void updateAll();
 
 
-signals:
-
+Q_SIGNALS:
     void tempsChanged();
 
 

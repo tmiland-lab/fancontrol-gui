@@ -83,7 +83,7 @@ void TempModel::setTemps(QList<Temp *> temps)
     beginResetModel();
 
     m_temps = temps;
-    emit tempsChanged();
+    Q_EMIT tempsChanged();
 
     for (const auto &temp : temps)
     {
@@ -110,7 +110,7 @@ void TempModel::addTemp(Temp *newTemp)
 
     beginInsertRows(QModelIndex(), index, index);
     m_temps = newTemps;
-    emit tempsChanged();
+    Q_EMIT tempsChanged();
     endInsertRows();
 }
 
@@ -131,7 +131,7 @@ void TempModel::updateTemp(Temp *temp)
     if (i == -1)
         return;
 
-    emit dataChanged(index(i, 0), index(i, 0), QVector<int>{ DisplayRole });
+    Q_EMIT dataChanged(index(i, 0), index(i, 0), QVector<int>{ DisplayRole });
 }
 
 void TempModel::updateTemp()
@@ -143,7 +143,7 @@ void TempModel::updateTemp()
 
 void TempModel::updateAll()
 {
-    emit dataChanged(index(0, 0), index(m_temps.size(), 0), QVector<int>{ DisplayRole });
+    Q_EMIT dataChanged(index(0, 0), index(m_temps.size(), 0), QVector<int>{ DisplayRole });
 }
 
 QObject * TempModel::temp(int index) const

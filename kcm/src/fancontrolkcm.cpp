@@ -30,33 +30,33 @@
 #endif
 
 
-K_PLUGIN_FACTORY_WITH_JSON(FancontrolKCMFactory, "kcm_fancontrol.json", registerPlugin<FancontrolKCM>();)
+K_PLUGIN_CLASS_WITH_JSON(FancontrolKCM, "kcm_fancontrol.json")
 
 
 FancontrolKCM::FancontrolKCM(QObject *parent, const KPluginMetaData& metaData)
     : KQuickConfigModule(parent, metaData)
 {
     setButtons(Apply | Default);
-    setAuthActionName(QString(STANDARD_HELPER_ID) + ".action");
+    setAuthActionName(QStringLiteral(STANDARD_HELPER_ID) + QStringLiteral(".action"));
 }
 
 void FancontrolKCM::save()
 {
-    emit aboutToSave();
+    Q_EMIT aboutToSave();
 
     setNeedsSave(false);
 }
 
 void FancontrolKCM::load()
 {
-    emit aboutToLoad();
+    Q_EMIT aboutToLoad();
 
     setNeedsSave(false);
 }
 
 void FancontrolKCM::defaults()
 {
-    emit aboutToDefault();
+    Q_EMIT aboutToDefault();
 
     setNeedsSave(true);
 }

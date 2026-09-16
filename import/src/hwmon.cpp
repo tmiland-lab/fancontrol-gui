@@ -51,7 +51,7 @@ Hwmon::Hwmon(const QString &path, Loader *parent) : QObject(parent),
         QDir dir(path);
         if (!dir.isReadable())
         {
-            emit error(i18n("%1 is not readable!", path));
+            Q_EMIT error(i18n("%1 is not readable!", path));
             m_valid = false;
         }
 
@@ -60,7 +60,7 @@ Hwmon::Hwmon(const QString &path, Loader *parent) : QObject(parent),
 
         if (!success)
         {
-            emit error(i18n("%1 is invalid!", path));
+            Q_EMIT error(i18n("%1 is invalid!", path));
             m_valid = false;
         }
 
@@ -101,7 +101,7 @@ void Hwmon::initialize()
 
         if (!success)
         {
-            emit error(i18n("Not a valid sensor: \'%1\'", entry));
+            Q_EMIT error(i18n("Not a valid sensor: \'%1\'", entry));
             continue;
         }
 
@@ -118,10 +118,10 @@ void Hwmon::initialize()
                         connect(newPwmFan, &PwmFan::testStatusChanged, m_parent, &Loader::handleTestStatusChanged);
 
                     m_pwmFans.insert(index, newPwmFan);
-                    emit pwmFansChanged();
+                    Q_EMIT pwmFansChanged();
 
                     m_fans.insert(index, newPwmFan);
-                    emit fansChanged();
+                    Q_EMIT fansChanged();
                 }
             }
             else
@@ -132,7 +132,7 @@ void Hwmon::initialize()
                     connect(this, &Hwmon::sensorsUpdateNeeded, newFan, &Fan::update);
 
                     m_fans.insert(index, newFan);
-                    emit fansChanged();
+                    Q_EMIT fansChanged();
                 }
             }
         }
@@ -145,7 +145,7 @@ void Hwmon::initialize()
                 connect(this, &Hwmon::sensorsUpdateNeeded, newTemp, &Temp::update);
 
                 m_temps.insert(index, newTemp);
-                emit tempsChanged();
+                Q_EMIT tempsChanged();
             }
         }
     }
@@ -165,7 +165,7 @@ void Hwmon::initialize()
 
             if (!success)
             {
-                emit error(i18n("Not a valid sensor: \'%1\'", entry));
+                Q_EMIT error(i18n("Not a valid sensor: \'%1\'", entry));
                 continue;
             }
 
@@ -182,10 +182,10 @@ void Hwmon::initialize()
                             connect(newPwmFan, &PwmFan::testStatusChanged, m_parent, &Loader::handleTestStatusChanged);
 
                         m_pwmFans.insert(index, newPwmFan);
-                        emit pwmFansChanged();
+                        Q_EMIT pwmFansChanged();
 
                         m_fans.insert(index, newPwmFan);
-                        emit fansChanged();
+                        Q_EMIT fansChanged();
                     }
                 }
                 else
@@ -196,7 +196,7 @@ void Hwmon::initialize()
                         connect(this, &Hwmon::sensorsUpdateNeeded, newFan, &Fan::update);
 
                         m_fans.insert(index, newFan);
-                        emit fansChanged();
+                        Q_EMIT fansChanged();
                     }
                 }
             }
@@ -209,7 +209,7 @@ void Hwmon::initialize()
                     connect(this, &Hwmon::sensorsUpdateNeeded, newTemp, &Temp::update);
 
                     m_temps.insert(index, newTemp);
-                    emit tempsChanged();
+                    Q_EMIT tempsChanged();
                 }
             }
         }

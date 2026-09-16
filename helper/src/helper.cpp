@@ -75,7 +75,7 @@ ActionReply Helper::action(const QVariantMap &arguments)
     ActionReply reply;
 
 #ifndef NO_SYSTEMD
-    if (arguments[QStringLiteral("action")] == "dbusaction")
+    if (arguments[QStringLiteral("action")].toString() == QLatin1String("dbusaction"))
     {
         qDBusRegisterMetaType<StringStruct>();
         qDBusRegisterMetaType<StringStructArray>();
@@ -170,7 +170,7 @@ ActionReply Helper::action(const QVariantMap &arguments)
     }
     else
 #endif
-    if (arguments[QStringLiteral("action")] == "read")
+    if (arguments[QStringLiteral("action")].toString() == QLatin1String("read"))
     {
         const auto filename = arguments[QStringLiteral("filename")].toString();
 
@@ -196,7 +196,7 @@ ActionReply Helper::action(const QVariantMap &arguments)
         }
     }
 
-    else if (arguments[QStringLiteral("action")] == "write")
+    else if (arguments[QStringLiteral("action")].toString() == QLatin1String("write"))
     {
         const auto filename = arguments[QStringLiteral("filename")].toString();
 

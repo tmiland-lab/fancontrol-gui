@@ -67,8 +67,7 @@ public:
     void toDefault() const;
 
 
-signals:
-
+Q_SIGNALS:
     void fansChanged();
     void pwmFansChanged();
     void tempsChanged();

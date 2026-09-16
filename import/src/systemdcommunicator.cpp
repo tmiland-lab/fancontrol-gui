@@ -77,7 +77,7 @@ SystemdCommunicator::SystemdCommunicator(GUIBase *parent, const QString &service
     m_serviceInterface(nullptr)
 {
     if (!m_managerInterface || !m_managerInterface->isValid())
-        emit error(i18n("Unable to init systemd dbus manager interface!"), true);
+        Q_EMIT error(i18n("Unable to init systemd dbus manager interface!"), true);
 
     if (parent)
     {
@@ -111,8 +111,8 @@ void SystemdCommunicator::setServiceName(const QString &name)
         }
 
         m_serviceName = name;
-        emit serviceNameChanged();
-        emit info(i18n("New service name: \'%1\'", m_serviceName));
+        Q_EMIT serviceNameChanged();
+        Q_EMIT info(i18n("New service name: \'%1\'", m_serviceName));
 
         if (serviceExists())
         {
@@ -121,7 +121,7 @@ void SystemdCommunicator::setServiceName(const QString &name)
             const auto dbusreply = m_managerInterface->callWithArgumentList(QDBus::AutoDetect, QStringLiteral("LoadUnit"), arguments);
             if (dbusreply.type() == QDBusMessage::ErrorMessage)
             {
-                emit error(dbusreply.errorMessage());
+                Q_EMIT error(dbusreply.errorMessage());
                 m_serviceObjectPath.clear();
             }
             else if (dbusreply.type() == QDBusMessage::ReplyMessage)
@@ -133,7 +133,7 @@ void SystemdCommunicator::setServiceName(const QString &name)
                                                         QDBusConnection::systemBus(),
                                                         this);
                 if (!m_serviceInterface || !m_serviceInterface->isValid())
-                    emit error(i18n("Unable to init systemd dbus service interface: %1", m_serviceInterface->lastError().message()), true);
+                    Q_EMIT error(i18n("Unable to init systemd dbus service interface: %1", m_serviceInterface->lastError().message()), true);
 
                 QDBusConnection::systemBus().connect(QStringLiteral("org.freedesktop.systemd1"),
                                                      m_serviceObjectPath,
@@ -143,12 +143,12 @@ void SystemdCommunicator::setServiceName(const QString &name)
                                                      SLOT(updateServiceProperties(QString, QVariantMap, QStringList)));
             }
             else
-                emit error(i18n("Dbus reply message is not of type \'QDBusMessage::ReplyMessage\'"));
+                Q_EMIT error(i18n("Dbus reply message is not of type \'QDBusMessage::ReplyMessage\'"));
         }
 
-        emit serviceEnabledChanged();
-        emit serviceActiveChanged();
-        emit needsApplyChanged();
+        Q_EMIT serviceEnabledChanged();
+        Q_EMIT serviceActiveChanged();
+        Q_EMIT needsApplyChanged();
     }
 }
 
@@ -163,23 +163,23 @@ bool SystemdCommunicator::serviceExists() const
         dbusreply = m_managerInterface->call(QDBus::AutoDetect, QStringLiteral("ListUnitFiles"));
     else
     {
-        emit error(i18n("Systemd dbus manager interface not initialized!"), true);
+        Q_EMIT error(i18n("Systemd dbus manager interface not initialized!"), true);
         return false;
     }
 
     if (dbusreply.type() == QDBusMessage::ErrorMessage)
     {
-        emit error(dbusreply.errorMessage());
+        Q_EMIT error(dbusreply.errorMessage());
         return false;
     }
     else if (dbusreply.type() == QDBusMessage::InvalidMessage)
     {
-        emit error(i18n("Dbus returned invalid answer"));
+        Q_EMIT error(i18n("Dbus returned invalid answer"));
         return false;
     }
     else if (dbusreply.signature() != QStringLiteral("a(ss)"))
     {
-        emit error(i18n("Dbus returned answer with wrong signature: \'%1\'", dbusreply.signature()));
+        Q_EMIT error(i18n("Dbus returned answer with wrong signature: \'%1\'", dbusreply.signature()));
         return false;
     }
 
@@ -190,7 +190,7 @@ bool SystemdCommunicator::serviceExists() const
             return true;
     }
 
-    emit error(i18n("Service does not exist: \'%1\'", m_serviceName));
+    Q_EMIT error(i18n("Service does not exist: \'%1\'", m_serviceName));
     return false;
 }
 
@@ -212,7 +212,7 @@ bool SystemdCommunicator::systemdServiceEnabled() const
         if (reply.isValid())
             return reply.value() == QStringLiteral("enabled");
         else
-            emit error(reply.error().message());
+            Q_EMIT error(reply.error().message());
     }
     return false;
 }
@@ -223,8 +223,8 @@ void SystemdCommunicator::setServiceEnabled(bool enabled)
         return;
 
     m_serviceEnabled = enabled;
-    emit serviceEnabledChanged();
-    emit needsApplyChanged();
+    Q_EMIT serviceEnabledChanged();
+    Q_EMIT needsApplyChanged();
 }
 
 void SystemdCommunicator::setServiceActive(bool active)
@@ -233,15 +233,15 @@ void SystemdCommunicator::setServiceActive(bool active)
         return;
 
     m_serviceActive = active;
-    emit serviceActiveChanged();
-    emit needsApplyChanged();
+    Q_EMIT serviceActiveChanged();
+    Q_EMIT needsApplyChanged();
 }
 
 bool SystemdCommunicator::restartService()
 {
     if (serviceExists())
     {
-        emit info(i18n("Restarting service: \'%1\'", m_serviceName));
+        Q_EMIT info(i18n("Restarting service: \'%1\'", m_serviceName));
 
         auto args = QVariantList() << m_serviceName + ".service" << "replace";
         return dbusAction(QStringLiteral("ReloadOrRestartUnit"), args);
@@ -259,7 +259,7 @@ bool SystemdCommunicator::dbusAction(const QString &method, const QVariantList &
 {
     if (!m_managerInterface->isValid())
     {
-        emit error(i18n("Invalid manager interface!"), true);
+        Q_EMIT error(i18n("Invalid manager interface!"), true);
         return false;
     }
 
@@ -284,7 +284,7 @@ bool SystemdCommunicator::dbusAction(const QString &method, const QVariantList &
         {
             success = false;
             error = dbusmessage.errorMessage();
-            emit this->error("DBus error: " + error);
+            Q_EMIT this->error("DBus error: " + error);
         }
     }
 
@@ -304,17 +304,17 @@ bool SystemdCommunicator::dbusAction(const QString &method, const QVariantList &
     {
         if (method == QStringLiteral("EnableUnitFiles") || method == QStringLiteral("DisableUnitFiles"))
         {
-            emit serviceEnabledChanged();
-            emit needsApplyChanged();
+            Q_EMIT serviceEnabledChanged();
+            Q_EMIT needsApplyChanged();
         }
         else if (method == QStringLiteral("StartUnit") || method == QStringLiteral("StopUnit"))
         {
-            emit serviceActiveChanged();
-            emit needsApplyChanged();
+            Q_EMIT serviceActiveChanged();
+            Q_EMIT needsApplyChanged();
         }
     }
     else
-        emit this->error(i18n("KAuth::ExecuteJob error! Code: %1\nAdditional Info: %2", job->error(), job->errorString()), true);
+        Q_EMIT this->error(i18n("KAuth::ExecuteJob error! Code: %1\nAdditional Info: %2", job->error(), job->errorString()), true);
 
     return success;
 }
@@ -328,12 +328,12 @@ void SystemdCommunicator::apply(bool serviceRestart)
             QString method;
             if (m_serviceEnabled)
             {
-                emit info(i18n("Enabling service autostart at boot:\'%1\'", m_serviceName));
+                Q_EMIT info(i18n("Enabling service autostart at boot:\'%1\'", m_serviceName));
                 method = QStringLiteral("EnableUnitFiles");
             }
             else
             {
-                emit info(i18n("Disabling service autostart at boot: \'%1\'", m_serviceName));
+                Q_EMIT info(i18n("Disabling service autostart at boot: \'%1\'", m_serviceName));
                 method = QStringLiteral("DisableUnitFiles");
             }
             const auto files = QStringList() << m_serviceName + ".service";
@@ -350,12 +350,12 @@ void SystemdCommunicator::apply(bool serviceRestart)
             QString method;
             if (m_serviceActive)
             {
-                emit info(i18n("Starting service: \'%1\'", m_serviceName));
+                Q_EMIT info(i18n("Starting service: \'%1\'", m_serviceName));
                 method = QStringLiteral("StartUnit");
             }
             else
             {
-                emit info(i18n("Stopping service: \'%1\'", m_serviceName));
+                Q_EMIT info(i18n("Stopping service: \'%1\'", m_serviceName));
                 method = QStringLiteral("StopUnit");
             }
             auto args = QVariantList() << m_serviceName + ".service" << "replace";
@@ -378,12 +378,12 @@ void SystemdCommunicator::updateServiceProperties(const QString&, const QVariant
 {
     if (propchanged.value(QStringLiteral("ActiveState")).isValid())
     {
-        emit needsApplyChanged();
+        Q_EMIT needsApplyChanged();
     }
 
     if (propchanged.value(QStringLiteral("UnitFileState")).isValid())
     {
-        emit needsApplyChanged();
+        Q_EMIT needsApplyChanged();
     }
 }
 

@@ -3,6 +3,7 @@ set(Fancontrol_GUI_SRCS src/main.cpp
 
 set(LIBRARIES Qt6::Gui
               Qt6::Widgets
+              Qt6::Qml
               KF6::CoreAddons
               KF6::DBusAddons
               KF6::Package
