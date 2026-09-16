@@ -471,7 +471,7 @@ void LoaderTest::createConfigTest()
     m_loader->setInterval(5);
 
     auto config = m_loader->createConfig();
-    QString expectedConfig = "# This file was created by Fancontrol-GUI\n"
+    QString expectedConfig = QStringLiteral("# This file was created by Fancontrol-GUI\n"
                              "INTERVAL=5\n"
                              "DEVPATH=hwmon0= hwmon1= \n"
                              "DEVNAME=hwmon0=radeon hwmon1=coretemp \n"
@@ -483,7 +483,7 @@ void LoaderTest::createConfigTest()
                              "MINSTOP=hwmon0/pwm1=80 hwmon1/pwm2=75 \n"
                              "MINPWM=hwmon0/pwm1=100 hwmon1/pwm2=120 \n"
                              "MAXPWM=hwmon0/pwm1=200 hwmon1/pwm2=255 \n"
-                             "AVERAGE=hwmon0/pwm1=1 hwmon1/pwm2=1 \n";
+                             "AVERAGE=hwmon0/pwm1=1 hwmon1/pwm2=1 \n");
 
     auto expectedLines = expectedConfig.split(QChar(QChar::LineFeed));
     auto configLines = config.split(QChar(QChar::LineFeed));
