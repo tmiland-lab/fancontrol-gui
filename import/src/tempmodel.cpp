@@ -25,7 +25,7 @@
 #include "temp.h"
 
 
-#define UNIT_SUFFIX "°C"
+#define UNIT_SUFFIX QLatin1String("°C")
 
 
 namespace Fancontrol

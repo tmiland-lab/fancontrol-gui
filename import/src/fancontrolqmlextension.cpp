@@ -42,7 +42,7 @@ namespace Fancontrol
 
 void FancontrolQmlExtension::registerTypes(const char* uri)
 {
-    Q_ASSERT(uri == QLatin1String("Fancontrol.Qml"));
+    Q_ASSERT(QLatin1String(uri) == QLatin1String("Fancontrol.Qml"));
 
     qmlRegisterType<Fan>(uri, 1, 0, "Fan");
     qmlRegisterUncreatableType<PwmFan>(uri, 1, 0, "PwmFan", QStringLiteral("PwmFan is not instantiable from QML!"));

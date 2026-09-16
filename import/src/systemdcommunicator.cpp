@@ -293,7 +293,7 @@ bool SystemdCommunicator::dbusAction(const QString &method, const QVariantList &
 
     auto action = newFancontrolAction();
     QVariantMap map;
-    map[QStringLiteral("action")] = "dbusaction";
+    map[QStringLiteral("action")] = QStringLiteral("dbusaction");
     map[QStringLiteral("method")] = method;
     map[QStringLiteral("arguments")] = arguments;
     action.setArguments(map);
