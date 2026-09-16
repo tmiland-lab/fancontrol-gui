@@ -60,7 +60,7 @@ QVariant PwmFanModel::data(const QModelIndex& index, int role) const
     switch (role)
     {
         case DisplayRole:
-            return fan->name() + QLatin1String("  (") + fan->id() + QLatin1String(")");
+            return QString(fan->name() + QLatin1String("  (") + fan->id() + QLatin1String(")"));
 
         case ObjectRole:
             return QVariant::fromValue(fan);

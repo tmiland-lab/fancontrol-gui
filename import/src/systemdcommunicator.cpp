@@ -117,7 +117,7 @@ void SystemdCommunicator::setServiceName(const QString &name)
         if (serviceExists())
         {
             QVariantList arguments;
-            arguments << QVariant(m_serviceName + QLatin1String(".service"));
+            arguments << QVariant(QString(m_serviceName + QLatin1String(".service")));
             const auto dbusreply = m_managerInterface->callWithArgumentList(QDBus::AutoDetect, QStringLiteral("LoadUnit"), arguments);
             if (dbusreply.type() == QDBusMessage::ErrorMessage)
             {
@@ -243,7 +243,7 @@ bool SystemdCommunicator::restartService()
     {
         Q_EMIT info(i18n("Restarting service: \'%1\'", m_serviceName));
 
-        auto args = QVariantList() << m_serviceName + QLatin1String(".service") << "replace";
+        auto args = QVariantList() << QString(m_serviceName + QLatin1String(".service")) << QStringLiteral("replace");
         return dbusAction(QStringLiteral("ReloadOrRestartUnit"), args);
     }
 
@@ -336,7 +336,7 @@ void SystemdCommunicator::apply(bool serviceRestart)
                 Q_EMIT info(i18n("Disabling service autostart at boot: \'%1\'", m_serviceName));
                 method = QStringLiteral("DisableUnitFiles");
             }
-            const auto files = QStringList() << m_serviceName + QLatin1String(".service");
+            const auto files = QStringList() << QString(m_serviceName + QLatin1String(".service"));
             auto args = QVariantList() << files << false;
             if (m_serviceEnabled)
                 args << true;
@@ -358,7 +358,7 @@ void SystemdCommunicator::apply(bool serviceRestart)
                 Q_EMIT info(i18n("Stopping service: \'%1\'", m_serviceName));
                 method = QStringLiteral("StopUnit");
             }
-            auto args = QVariantList() << m_serviceName + QLatin1String(".service") << "replace";
+auto args = QVariantList() << QString(m_serviceName + QLatin1String(".service")) << QStringLiteral("replace");
 
             if (!dbusAction(method, args))
                 return;
