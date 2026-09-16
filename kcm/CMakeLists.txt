@@ -13,6 +13,5 @@ add_library(kcm_fancontrol MODULE src/fancontrolkcm.cpp)
 target_link_libraries(kcm_fancontrol PRIVATE ${LIBRARIES})
 
 install(TARGETS kcm_fancontrol DESTINATION "${KDE_INSTALL_QTPLUGINDIR}/kcms")
-install(PROGRAMS kcm_fancontrol.desktop DESTINATION ${KDE_INSTALL_KSERVICESDIR})
 
 kpackage_install_package(package org.kde.fancontrol.kcm kcms)
