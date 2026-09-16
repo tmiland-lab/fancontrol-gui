@@ -13,6 +13,7 @@ jobs:
     container: debian:trixie-slim
     env:
       DEBIAN_FRONTEND: noninteractive
+      LANG: C.UTF-8
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,6 +30,7 @@ jobs:
             libkf6coreaddons-dev libkf6dbusaddons-dev libkf6i18n-dev libkf6notifications-dev \
             libplasma-dev libkf6kcmutils-dev libkf6configwidgets-dev libkf6windowsystem-dev \
             libkf6statusnotifieritem-dev \
+            appstream \
             qml6-module-org-kde-kcmutils
 
       - name: Configure
