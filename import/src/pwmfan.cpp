@@ -25,6 +25,9 @@
 #include "hwmon.h"
 #include "fancontrolaction.h"
 
+#include <KAuth/ActionReply>
+#include <KAuth/ExecuteJob>
+
 #include <QTextStream>
 #include <QTimer>
 #include <QDir>
@@ -243,7 +246,7 @@ bool PwmFan::setPwm(int pwm, bool write)
                 if (action.isValid())
                 {
                     QVariantMap map;
-                    map[QStringLiteral("action")] = "write";
+                    map[QStringLiteral("action")] = QStringLiteral("write");
                     map[QStringLiteral("filename")] = qobject_cast<QFile *>(m_pwmStream->device())->fileName();
                     map[QStringLiteral("content")] = QString::number(pwm);
                     action.setArguments(map);
@@ -289,7 +292,7 @@ bool PwmFan::setPwmEnable(PwmEnable pwmEnable, bool write)
                 if (action.isValid())
                 {
                     QVariantMap map;
-                    map[QStringLiteral("action")] = QVariant("write");
+                    map[QStringLiteral("action")] = QStringLiteral("write");
                     map[QStringLiteral("filename")] = qobject_cast<QFile *>(m_enableStream->device())->fileName();
                     map[QStringLiteral("content")] = QString::number(pwmEnable);
                     action.setArguments(map);

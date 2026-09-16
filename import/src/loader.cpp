@@ -222,10 +222,10 @@ bool Loader::parseConfig(QString config)
     {
         auto line(stream.readLine());
 
-        if (line.startsWith('#') || line.trimmed().isEmpty())
+        if (line.startsWith(QLatin1Char('#')) || line.trimmed().isEmpty())
             continue;
 
-        const auto offset = line.indexOf('#');
+        const auto offset = line.indexOf(QLatin1Char('#'));
 
         if (offset != -1)
             line.truncate(offset);
@@ -452,7 +452,7 @@ bool Loader::load(const QUrl &url)
             if (action.isValid())
             {
                 auto map = QVariantMap();
-                map[QStringLiteral("action")] = QVariant("read");
+                map[QStringLiteral("action")] = QStringLiteral("read");
                 map[QStringLiteral("filename")] = filePath;
                 action.setArguments(map);
                 auto job = action.execute();
@@ -570,7 +570,7 @@ bool Loader::save(const QUrl &url)
         if (action.isValid())
         {
             QVariantMap map;
-            map[QStringLiteral("action")] = QVariant("write");
+            map[QStringLiteral("action")] = QStringLiteral("write");
             map[QStringLiteral("filename")] = filePath;
             map[QStringLiteral("content")] = m_config;
 
@@ -649,7 +649,7 @@ QString Loader::createConfig() const
 
     std::sort(usedHwmons.begin(), usedHwmons.end(), [] (Hwmon *a, Hwmon *b) { return a->index() < b->index(); });
 
-    auto configFile = QStringLiteral("# This file was created by Fancontrol-GUI") + QChar(QChar::LineFeed);
+    QString configFile = QStringLiteral("# This file was created by Fancontrol-GUI") + QChar(QChar::LineFeed);
 
     if (m_interval != 0)
         configFile += QLatin1String("INTERVAL=") + QString::number(m_interval) + QChar(QChar::LineFeed);
