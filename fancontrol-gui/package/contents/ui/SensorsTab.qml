@@ -32,6 +32,43 @@ Kirigami.ScrollablePage {
 
     spacing: Kirigami.Units.smallSpacing
 
+    Kirigami.InlineMessage {
+        id: alarmBanner
+
+        readonly property bool alarm: Fancontrol.Base.temperatureAlarm
+
+        visible: alarm
+        type: Kirigami.MessageType.Error
+        text: alarm ? i18n("Temperature alarm: %1 reached %2°C, above the %3°C threshold",
+                            Fancontrol.Base.alarmSensor,
+                            Fancontrol.Base.highestTemp.toFixed(1),
+                            Fancontrol.Base.alertThreshold.toFixed(1)) : ""
+        actions: [
+            Kirigami.Action {
+                icon.name: "dialog-ok"
+                text: i18n("Dismiss")
+                onTriggered: Fancontrol.Base.checkTemperatures()
+            },
+            Kirigami.Action {
+                icon.name: "configure"
+                text: i18n("Settings…")
+                onTriggered: window.leftPage = "SettingsTab.qml"
+            }
+        ]
+
+        Layout.fillWidth: true
+        z: 5
+    }
+
+    Fancontrol.TemperatureOverview {
+        id: overview
+
+        updateInterval: Fancontrol.Base.loader.interval * 1000
+        rangeMinutes: 5
+        height: Kirigami.Units.gridUnit * 20
+        Layout.fillWidth: true
+    }
+
     ListView {
         id: listView
 

@@ -53,6 +53,8 @@ Config::Config(QObject *parent) : KCoreConfigSkeleton(KSharedConfig::openConfig(
     addItemInt(QStringLiteral("CurrentProfile"), m_currentProfile, 0);
     addItemBool(QStringLiteral("ShowTray"), m_showTray, false);
     addItemBool(QStringLiteral("StartMinimized"), m_startMinimized, false);
+    addItemBool(QStringLiteral("AlertEnabled"), m_alertEnabled, true);
+    addItemDouble(QStringLiteral("AlertThreshold"), m_alertThreshold, 80.0);
 
     load();
 }

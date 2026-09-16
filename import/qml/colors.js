@@ -21,3 +21,17 @@
 function setAlpha(color, alpha) {
     return Qt.rgba(color.r, color.g, color.b, alpha);
 }
+
+function palette(index) {
+    var colors = [
+        Qt.rgba(0.20, 0.45, 0.95, 1.0),
+        Qt.rgba(0.91, 0.34, 0.20, 1.0),
+        Qt.rgba(0.13, 0.63, 0.39, 1.0),
+        Qt.rgba(0.85, 0.60, 0.11, 1.0),
+        Qt.rgba(0.48, 0.33, 0.85, 1.0),
+        Qt.rgba(0.17, 0.65, 0.68, 1.0),
+        Qt.rgba(0.78, 0.33, 0.66, 1.0),
+        Qt.rgba(0.62, 0.53, 0.21, 1.0)
+    ];
+    return colors[index % colors.length];
+}

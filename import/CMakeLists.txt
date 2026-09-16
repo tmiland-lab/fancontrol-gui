@@ -20,6 +20,7 @@ set(QML_FILES qml/qmldir
               qml/SettingsForm.qml
               qml/StatusPoint.qml
               qml/TemperatureTimeline.qml
+              qml/TemperatureOverview.qml
               qml/PwmHistory.qml
               qml/FanCurvePreset.qml
               qml/colors.js
@@ -29,7 +30,8 @@ set(LIB_PRIVATE_LIBRARIES Qt6::Qml
                           Qt6::Quick
                           KF6::AuthCore
                           KF6::ConfigCore
-                          KF6::I18n)
+                          KF6::I18n
+                          KF6::Notifications)
 
 set(LIB_PUBLIC_LIBRARIES Qt6::Core)
 

@@ -25,6 +25,7 @@
 
 #include <QObject>
 #include <QStringListModel>
+#include <QTimer>
 #include <QUrl>
 
 #include "loader.h"
@@ -64,6 +65,11 @@ class GUIBase : public QObject
     Q_PROPERTY(bool needsApply READ needsApply NOTIFY needsApplyChanged)
     Q_PROPERTY(bool showTray READ showTray WRITE setShowTray NOTIFY showTrayChanged)
     Q_PROPERTY(bool startMinimized READ startMinimized WRITE setStartMinimized NOTIFY startMinimizedChanged)
+    Q_PROPERTY(bool alertEnabled READ alertEnabled WRITE setAlertEnabled NOTIFY alertEnabledChanged)
+    Q_PROPERTY(double alertThreshold READ alertThreshold WRITE setAlertThreshold NOTIFY alertThresholdChanged)
+    Q_PROPERTY(bool temperatureAlarm READ temperatureAlarm NOTIFY temperatureAlarmChanged)
+    Q_PROPERTY(QString alarmSensor READ alarmSensor NOTIFY temperatureAlarmChanged)
+    Q_PROPERTY(double highestTemp READ highestTemp NOTIFY highestTempChanged)
     Q_PROPERTY(bool hasSystemdCommunicator READ hasSystemdCommunicator CONSTANT)
 
 public:
@@ -92,6 +98,13 @@ public:
     void setShowTray(bool show);
     bool startMinimized() const;
     void setStartMinimized(bool sm);
+    bool alertEnabled() const;
+    void setAlertEnabled(bool enabled);
+    double alertThreshold() const;
+    void setAlertThreshold(double threshold);
+    bool temperatureAlarm() const { return m_temperatureAlarm; }
+    QString alarmSensor() const { return m_alarmSensor; }
+    double highestTemp() const { return m_highestTemp; }
     PwmFanModel *pwmFanModel() const { return m_pwmFanModel; }
     TempModel *tempModel() const { return m_tempModel; }
     QStringListModel *profileModel() const { return m_profileModel; }
@@ -104,6 +117,7 @@ public:
     Q_INVOKABLE void load();
     Q_INVOKABLE void apply();
     Q_INVOKABLE void reset();
+    Q_INVOKABLE void applyAndRestart();
     Q_INVOKABLE void applyProfile(const QString &profileName);
     Q_INVOKABLE void applyProfile(int);
     Q_INVOKABLE void saveProfile(const QString &profileName, bool updateModel = true);
@@ -123,6 +137,13 @@ Q_SIGNALS:
     void showTrayChanged();
     void startMinimizedChanged();
     void currentProfileChanged();
+    void alertEnabledChanged();
+    void alertThresholdChanged();
+    void temperatureAlarmChanged();
+    void highestTempChanged();
+
+private Q_SLOTS:
+    Q_INVOKABLE void checkTemperatures();
 
 private:
 
@@ -137,6 +158,10 @@ private:
     PwmFanModel *m_pwmFanModel;
     TempModel *m_tempModel;
     QStringListModel *m_profileModel;
+    QTimer m_alertTimer;
+    double m_highestTemp;
+    bool m_temperatureAlarm;
+    QString m_alarmSensor;
 };
 
 }
