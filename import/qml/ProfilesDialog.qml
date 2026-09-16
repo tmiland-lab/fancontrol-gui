@@ -18,17 +18,20 @@
  */
 
 
-import QtQuick 2.6
-import QtQuick.Controls 2.1
-import QtQuick.Layouts 1.2
-import org.kde.kirigami 2.3 as Kirigami
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 2.15
+import QtQuick.Dialogs 6
+import org.kde.kirigami 2.14 as Kirigami
 import Fancontrol.Qml 1.0 as Fancontrol
 
 
 Dialog {
+    id: profilesDialog
+
     title: i18n("Manage profiles")
-    width: Kirigami.Units.gridUnit * 20
-    height: Kirigami.Units.gridUnit * 20
+    width: Kirigami.Units.gridUnit * 25
+    height: Kirigami.Units.gridUnit * 22
     standardButtons: Dialog.Close
 
     RowLayout {
@@ -81,17 +84,17 @@ Dialog {
 
             Button {
                 text: i18n("Apply profile")
-                enabled: Fancontrol.Base.currentProfileIndex != profilesListView.currentIndex
+                enabled: Fancontrol.Base.currentProfileIndex !== profilesListView.currentIndex
                 onClicked: Fancontrol.Base.applyProfile(profilesListView.currentIndex)
             }
             Button {
                 text: i18n("Create new profile")
-                enabled: Fancontrol.Base.currentProfileIndex == -1
+                enabled: Fancontrol.Base.currentProfileIndex === -1
                 onClicked: newProfileNameDialog.open()
             }
             Button {
                 text: i18n("Save to profile")
-                enabled: Fancontrol.Base.currentProfileIndex != profilesListView.currentIndex && profilesListView.currentIndex >= 0
+                enabled: Fancontrol.Base.currentProfileIndex !== profilesListView.currentIndex && profilesListView.currentIndex >= 0
                 onClicked: Fancontrol.Base.saveProfile(profilesListView.currentItem.label)
             }
             Button {
@@ -99,8 +102,32 @@ Dialog {
                 enabled: profilesListView.currentIndex >= 0
                 onClicked: Fancontrol.Base.deleteProfile(profilesListView.currentIndex)
             }
-            Item {
-                Layout.fillHeight: true
+
+            Item { Layout.fillHeight: true; Layout.preferredHeight: Kirigami.Units.gridUnit * 2 }
+
+            Label {
+                text: i18n("Import/Export:")
+                font.bold: true
+                Layout.fillWidth: true
+            }
+
+            Button {
+                text: i18n("Export profile")
+                icon.name: "document-save"
+                enabled: profilesListView.currentIndex >= 0
+                Layout.fillWidth: true
+                onClicked: {
+                    var profileName = profilesListView.currentItem ? profilesListView.currentItem.text : "fan_profile";
+                    exportFileDialog.currentFile = Qt.url("file://" + profileName + ".conf");
+                    exportFileDialog.open();
+                }
+            }
+
+            Button {
+                text: i18n("Import profile")
+                icon.name: "document-open"
+                Layout.fillWidth: true
+                onClicked: importFileDialog.open()
             }
         }
     }
@@ -123,5 +150,23 @@ Dialog {
         TextField {
             id: newProfileNameField
         }
+    }
+
+    FileDialog {
+        id: exportFileDialog
+
+        title: i18n("Export profile")
+        fileMode: FileDialog.SaveFile
+        nameFilters: [i18n("Fancontrol config (*.conf)")]
+        modality: Qt.NonModal
+    }
+
+    FileDialog {
+        id: importFileDialog
+
+        title: i18n("Import profile")
+        fileMode: FileDialog.OpenFile
+        nameFilters: [i18n("Fancontrol config (*.conf)")]
+        modality: Qt.NonModal
     }
 }

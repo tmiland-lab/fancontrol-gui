@@ -21,7 +21,7 @@
 #ifndef SYSTEMDCOMMUNICATOR_H
 #define SYSTEMDCOMMUNICATOR_H
 
-#include <QtCore/QObject>
+#include <QObject>
 
 
 class QDBusInterface;
@@ -41,7 +41,7 @@ class SystemdCommunicator : public QObject
 
 public:
 
-    explicit SystemdCommunicator(GUIBase *parent = Q_NULLPTR, const QString &serviceName = QString());
+    explicit SystemdCommunicator(GUIBase *parent = nullptr, const QString &serviceName = QString());
 
     QString serviceName() const { return m_serviceName; }
     void setServiceName(const QString &name);

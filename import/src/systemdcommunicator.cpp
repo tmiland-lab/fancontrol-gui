@@ -23,15 +23,15 @@
 #include "fancontrolaction.h"
 #include "guibase.h"
 
-#include <QtCore/QTimer>
-#include <QtDBus/QDBusArgument>
-#include <QtDBus/QDBusInterface>
-#include <QtDBus/QDBusMetaType>
-#include <QtDBus/QDBusReply>
-#include <QtDBus/QDBusVariant>
+#include <QTimer>
+#include <QDBusArgument>
+#include <QDBusInterface>
+#include <QDBusMetaType>
+#include <QDBusReply>
+#include <QDBusVariant>
 
 #include <KAuth/KAuthExecuteJob>
-#include <KI18n/KLocalizedString>
+#include <KLocalizedString>
 
 #ifndef STANDARD_SERVICE_NAME
 #define STANDARD_SERVICE_NAME "fancontrol"
@@ -74,7 +74,7 @@ SystemdCommunicator::SystemdCommunicator(GUIBase *parent, const QString &service
                                           QStringLiteral("org.freedesktop.systemd1.Manager"),
                                           QDBusConnection::systemBus(),
                                           this)),
-    m_serviceInterface(Q_NULLPTR)
+    m_serviceInterface(nullptr)
 {
     if (!m_managerInterface || !m_managerInterface->isValid())
         emit error(i18n("Unable to init systemd dbus manager interface!"), true);
@@ -107,7 +107,7 @@ void SystemdCommunicator::setServiceName(const QString &name)
                                                     this,
                                                     SLOT(updateServiceProperties(QString, QVariantMap, QStringList)));
             m_serviceInterface->deleteLater();
-            m_serviceInterface = Q_NULLPTR;
+            m_serviceInterface = nullptr;
         }
 
         m_serviceName = name;

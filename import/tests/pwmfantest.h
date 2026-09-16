@@ -22,8 +22,8 @@
 #ifndef PWMFANTEST_H
 #define PWMFANTEST_H
 
-#include <QtCore/QObject>
-#include <QtCore/QString>
+#include <QObject>
+#include <QString>
 
 #include "testpwmfan.h"
 

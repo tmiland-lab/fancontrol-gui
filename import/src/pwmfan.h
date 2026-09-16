@@ -76,7 +76,7 @@ public:
     explicit PwmFan(uint index, Hwmon *parent, bool device = false);
     virtual ~PwmFan();
 
-    int pwm() const Q_DECL_OVERRIDE { return m_pwm; }
+    int pwm() const override { return m_pwm; }
     Temp * temp() const { return m_temp; }
     bool hasTemp() const { return m_hasTemp; }
     int minTemp() const { return m_minTemp; }
@@ -90,8 +90,8 @@ public:
     TestStatus testStatus() const { return m_testStatus; }
     bool active() const;
     bool testing() const;
-    bool setPwm(int pwm, bool write = true) Q_DECL_OVERRIDE;
-    void setTemp(Temp *temp) { setHasTemp(temp != Q_NULLPTR); if (temp != m_temp) { m_temp = temp; emit tempChanged(); } }
+    bool setPwm(int pwm, bool write = true) override;
+    void setTemp(Temp *temp) { setHasTemp(temp != nullptr); if (temp != m_temp) { m_temp = temp; emit tempChanged(); } }
     void setHasTemp(bool hasTemp) { if (hasTemp != m_hasTemp) { m_hasTemp = hasTemp; emit hasTempChanged(); } }
     void setMinTemp(int minTemp) { if (minTemp != m_minTemp) { m_minTemp = minTemp; emit minTempChanged(); } }
     void setMaxTemp(int maxTemp) { if (maxTemp != m_maxTemp) { m_maxTemp = maxTemp; emit maxTempChanged(); } }
@@ -102,9 +102,9 @@ public:
     void setAverage(int average) { if (average != m_average) { m_average = average; emit averageChanged(); } }
     bool setPwmEnable(PwmEnable pwmEnable, bool write = true);
     void setActive(bool active);
-    void toDefault() Q_DECL_OVERRIDE;
-    bool isValid() const Q_DECL_OVERRIDE;
-    void update() Q_DECL_OVERRIDE;
+    void toDefault() override;
+    bool isValid() const override;
+    void update() override;
     void continueTest();
 
     Q_INVOKABLE void test();

@@ -24,7 +24,7 @@
 #define TEMPMODEL_H
 
 
-#include <QtCore/QAbstractListModel>
+#include <QAbstractListModel>
 
 
 
@@ -47,7 +47,7 @@ public:
     };
     Q_ENUM(Roles)
 
-    TempModel(QObject *parent = Q_NULLPTR);
+    TempModel(QObject *parent = nullptr);
     void setTemps(QList<Temp *> temps);
     void addTemp(Temp *newTemp);
     void addTemps(const QList<Temp *> &newTemps);

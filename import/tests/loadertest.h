@@ -22,7 +22,7 @@
 #ifndef LOADERTEST_H
 #define LOADERTEST_H
 
-#include <QtCore/QObject>
+#include <QObject>
 
 #include "loader.h"
 #include "hwmon.h"
@@ -39,7 +39,7 @@ class TestHwmon : public Hwmon
 
 public:
 
-    explicit TestHwmon(const QString &name, const QList<QString *> &rpms, const QList<QString *> &pwms, const QList<QString *> &pwmmodes, const QList<QString *> &temps, uint index = 0, Loader *parent = Q_NULLPTR) : Hwmon(QString(), parent)
+    explicit TestHwmon(const QString &name, const QList<QString *> &rpms, const QList<QString *> &pwms, const QList<QString *> &pwmmodes, const QList<QString *> &temps, uint index = 0, Loader *parent = nullptr) : Hwmon(QString(), parent)
     {
         m_name = name;
         m_index = index;
@@ -97,7 +97,7 @@ class TestLoader : public Loader
 
 public:
 
-    explicit TestLoader(GUIBase *parent = Q_NULLPTR) : Loader(parent) {}
+    explicit TestLoader(GUIBase *parent = nullptr) : Loader(parent) {}
 
     void addHwmon(Hwmon *hwmon)
     {

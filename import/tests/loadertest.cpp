@@ -112,8 +112,8 @@ void LoaderTest::parseFctempTest_data()
     QTest::newRow("fan02temp11") << "FCTEMPS=hwmon0/fan2=hwmon1/temp1" << m_loader->hwmons().at(0)->pwmFans().value(2) << m_loader->hwmons().at(1)->temps().value(1) << "" << false;
     QTest::newRow("fan11temp03") << "FCTEMPS=hwmon1/fan1=hwmon0/temp3" << m_loader->hwmons().at(1)->pwmFans().value(1) << m_loader->hwmons().at(0)->temps().value(3) << "" << false;
     QTest::newRow("fan12temp12") << "FCTEMPS=hwmon1/fan2=hwmon1/temp2" << m_loader->hwmons().at(1)->pwmFans().value(2) << m_loader->hwmons().at(1)->temps().value(2) << "" << false;
-    QTest::newRow("invalid0") << "FCTEMPS=hwmon2/fan1=hwmon0/temp3" << static_cast<PwmFan *>(Q_NULLPTR) << m_loader->hwmons().at(0)->temps().value(3) << "Invalid fan entry: \'hwmon2/fan1\'" << true;
-    QTest::newRow("invalid1") << "FCTEMPS=hwmon0/fan1=hwmon0/temp4" << m_loader->hwmons().at(0)->pwmFans().value(0) << static_cast<Temp *>(Q_NULLPTR) << "Invalid temp entry: \'hwmon0/temp4\'" << true;
+    QTest::newRow("invalid0") << "FCTEMPS=hwmon2/fan1=hwmon0/temp3" << static_cast<PwmFan *>(nullptr) << m_loader->hwmons().at(0)->temps().value(3) << "Invalid fan entry: \'hwmon2/fan1\'" << true;
+    QTest::newRow("invalid1") << "FCTEMPS=hwmon0/fan1=hwmon0/temp4" << m_loader->hwmons().at(0)->pwmFans().value(0) << static_cast<Temp *>(nullptr) << "Invalid temp entry: \'hwmon0/temp4\'" << true;
 }
 
 void LoaderTest::parseFctempTest()

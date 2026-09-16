@@ -21,7 +21,7 @@
 #ifndef SENSOR_H
 #define SENSOR_H
 
-#include <QtCore/QObject>
+#include <QObject>
 
 
 namespace Fancontrol

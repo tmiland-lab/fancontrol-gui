@@ -25,10 +25,11 @@
 #include "fan.h"
 #include "pwmfan.h"
 
-#include <QtCore/QDir>
-#include <QtCore/QTextStream>
+#include <QDir>
+#include <QTextStream>
+#include <QRegularExpression>
 
-#include <KI18n/KLocalizedString>
+#include <KLocalizedString>
 
 
 namespace Fancontrol
@@ -96,7 +97,7 @@ void Hwmon::initialize()
 
         auto str = entry;
         auto success = false;
-        const auto index = str.remove(QRegExp("\\D+")).toUInt(&success);
+        const auto index = str.remove(QRegularExpression(QStringLiteral("\\D+"))).toUInt(&success);
 
         if (!success)
         {
@@ -160,7 +161,7 @@ void Hwmon::initialize()
 
             auto str = entry;
             auto success = false;
-            const auto index = str.remove(QRegExp("\\D+")).toUInt(&success);
+            const auto index = str.remove(QRegularExpression(QStringLiteral("\\D+"))).toUInt(&success);
 
             if (!success)
             {

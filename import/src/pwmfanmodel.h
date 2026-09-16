@@ -24,7 +24,7 @@
 #define PWMFANMODEL_H
 
 
-#include <QtCore/QAbstractListModel>
+#include <QAbstractListModel>
 
 
 namespace Fancontrol {
@@ -46,7 +46,7 @@ public:
     };
     Q_ENUM(Roles)
 
-    PwmFanModel(QObject *parent = Q_NULLPTR);
+    PwmFanModel(QObject *parent = nullptr);
     void setPwmFans(QList<PwmFan *> fans);
     void addPwmFan(PwmFan *newFan);
     void addPwmFans(const QList<PwmFan *> &newFans);

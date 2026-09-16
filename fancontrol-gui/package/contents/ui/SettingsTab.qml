@@ -18,8 +18,8 @@
  */
 
 
-import QtQuick 2.6
-import org.kde.kirigami 2.3 as Kirigami
+import QtQuick 2.15
+import org.kde.kirigami 2.14 as Kirigami
 import Fancontrol.Qml 1.0 as Fancontrol
 
 

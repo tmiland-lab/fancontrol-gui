@@ -29,7 +29,7 @@ void PwmFanTest::initTestCase()
 {
     m_pwmString = QStringLiteral("0");
     m_modeString = QStringLiteral("0");
-    m_fan = new TestPwmFan(&m_pwmString, &m_modeString, Q_NULLPTR);
+    m_fan = new TestPwmFan(&m_pwmString, &m_modeString, nullptr);
 }
 
 void PwmFanTest::cleanupTestCase()

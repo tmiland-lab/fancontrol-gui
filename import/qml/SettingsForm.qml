@@ -18,11 +18,11 @@
  */
 
 
-import QtQuick 2.6
-import QtQuick.Layouts 1.2
-import QtQuick.Controls 2.1
-import QtQuick.Dialogs 1.2
-import org.kde.kirigami 2.3 as Kirigami
+import QtQuick 2.15
+import QtQuick.Layouts 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Dialogs 6
+import org.kde.kirigami 2.14 as Kirigami
 import Fancontrol.Qml 1.0 as Fancontrol
 
 
@@ -50,8 +50,8 @@ Kirigami.FormLayout {
 
         Connections {
             target: loader
-            onIntervalChanged: {
-                if (loader.interval != intervalSpinBox.value)
+            function onIntervalChanged() {
+                if (loader.interval !== intervalSpinBox.value)
                     intervalSpinBox.value = loader.interval;
             }
         }
@@ -79,7 +79,7 @@ Kirigami.FormLayout {
 
         Connections {
             target: Fancontrol.Base
-            onMinTempChanged: {
+            function onMinTempChanged() {
                 if (Fancontrol.Base.minTemp !== minTempBox.value)
                     minTempBox.value = Fancontrol.Base.minTemp;
             }
@@ -108,8 +108,8 @@ Kirigami.FormLayout {
 
         Connections {
             target: Fancontrol.Base
-            onMaxTempChanged: {
-                if (Fancontrol.Base.maxTemp !== maxTempBox.celsuisValue)
+            function onMaxTempChanged() {
+                if (Fancontrol.Base.maxTemp !== maxTempBox.value)
                     maxTempBox.value = Fancontrol.Base.maxTemp;
             }
         }
@@ -127,12 +127,14 @@ Kirigami.FormLayout {
 
             Connections {
                 target: Fancontrol.Base
-                onConfigUrlChanged: if(Fancontrol.Base.configUrl.toString().replace("file://", "") != fileInput.text) fileInput.text = Fancontrol.Base.configUrl.toString().replace("file://", "")
+                function onConfigUrlChanged() {
+                    if (Fancontrol.Base.configUrl.toString().replace("file://", "") !== fileInput.text)
+                        fileInput.text = Fancontrol.Base.configUrl.toString().replace("file://", "")
+                }
             }
         }
         Button {
             icon.name: "document-open"
-            //                 tooltip: i18n("Open config file")
             onClicked: openFileDialog.open();
         }
     }
@@ -148,7 +150,10 @@ Kirigami.FormLayout {
 
         Connections {
             target: Fancontrol.Base
-            onServiceNameChanged: if(Fancontrol.Base.serviceName != serviceNameInput.text) serviceNameInput.text = Fancontrol.Base.serviceName
+            function onServiceNameChanged() {
+                if (Fancontrol.Base.serviceName !== serviceNameInput.text)
+                    serviceNameInput.text = Fancontrol.Base.serviceName
+            }
         }
     }
     CheckBox {
@@ -161,7 +166,10 @@ Kirigami.FormLayout {
 
         Connections {
             target: Fancontrol.Base
-            onShowTrayChanged: if (Fancontrol.Base.showTray != trayBox.checked) trayBox.checked = Fancontrol.Base.showTray
+            function onShowTrayChanged() {
+                if (Fancontrol.Base.showTray !== trayBox.checked)
+                    trayBox.checked = Fancontrol.Base.showTray
+            }
         }
     }
     CheckBox {
@@ -174,7 +182,10 @@ Kirigami.FormLayout {
 
         Connections {
             target: Fancontrol.Base
-            onStartMinimizedChanged: if (Fancontrol.Base.startMinimized != startMinimizedBox.checked) startMinimizedBox.checked = Fancontrol.Base.startMinimized
+            function onStartMinimizedChanged() {
+                if (Fancontrol.Base.startMinimized !== startMinimizedBox.checked)
+                    startMinimizedBox.checked = Fancontrol.Base.startMinimized
+            }
         }
     }
 
@@ -182,11 +193,10 @@ Kirigami.FormLayout {
         id: openFileDialog
 
         title: i18n("Please choose a configuration file")
-        folder: "file:///etc"
-        selectExisting: true
-        selectMultiple: false
+        currentFolder: "file:///etc"
+        fileMode: FileDialog.OpenFile
         modality: Qt.NonModal
 
-        onAccepted: fileInput.text = fileUrl;
+        onAccepted: fileInput.text = selectedFile;
     }
 }

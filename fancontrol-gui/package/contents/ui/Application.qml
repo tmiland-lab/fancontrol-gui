@@ -18,10 +18,10 @@
  */
 
 
-import QtQuick 2.6
-import QtQuick.Controls 2.1
-import QtQuick.Layouts 1.2
-import org.kde.kirigami 2.3 as Kirigami
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 2.15
+import org.kde.kirigami 2.14 as Kirigami
 import Fancontrol.Gui 1.0 as Gui
 import Fancontrol.Qml 1.0 as Fancontrol
 
@@ -51,7 +51,7 @@ Kirigami.ApplicationWindow {
             var url = Qt.resolvedUrl(leftPage);
             var component = Qt.createComponent(url);
 
-            if (component.status == Component.Ready) {
+            if (component.status === Component.Ready) {
                 var page = component.createObject(window.pageStack);
 
                 if (page)
@@ -61,19 +61,18 @@ Kirigami.ApplicationWindow {
             } else {
                 console.log("Error creating page component: %1", component.errorString());
             }
-
         }
     }
 
     onWideScreenChanged: drawer.drawerOpen = wideScreen
 
-//     onClosing: {
-//         if (Fancontrol.Base.needsApply && !saveOnCloseDialog.answered) {
-//             close.accepted = false;
-//             saveOnCloseDialog.open();
-//             return;
-//         }
-//     }
+    onClosing: {
+        if (Fancontrol.Base.needsApply && !saveOnCloseDialog.answered) {
+            close.accepted = false;
+            saveOnCloseDialog.open();
+            return;
+        }
+    }
 
     Component.onCompleted: {
         Fancontrol.Base.load();
@@ -90,12 +89,12 @@ Kirigami.ApplicationWindow {
         resetMenuOnTriggered: false
 
         function populateFans() {
-            for (var i=fansAction.children.length-1; i>=0; i--) {
+            for (var i = fansAction.children.length - 1; i >= 0; i--) {
                 fansAction.children[i].destroy();
             }
 
             var actions = [];
-            for (var i=0; i<20; i++) {
+            for (var i = 0; i < pwmFanModel.length; i++) {
                 var action = fanActionComponent.createObject(fansAction, { "index": i });
 
                 if (action)
@@ -125,8 +124,8 @@ Kirigami.ApplicationWindow {
 
         Connections {
             target: pwmFanModel
-            onFansChanged: {
-                for (var i=0; i<pwmFanModel.length && i<fansAction.children.length; i++) {
+            function onFansChanged() {
+                for (var i = 0; i < pwmFanModel.length && i < fansAction.children.length; i++) {
                     fansAction.children[i].fan = pwmFanModel.fan(i);
                 }
             }
@@ -171,15 +170,29 @@ Kirigami.ApplicationWindow {
 
         sourceComponent: Component {
             Gui.SystemTrayIcon {
+                id: trayIcon
                 title: "Fancontrol-GUI"
                 iconName: "org.kde.fancontrol.gui"
                 profileModel: Fancontrol.Base.profileModel
+                tooltipSummary: {
+                    var temps = Fancontrol.Base.tempModel;
+                    var summary = "";
+                    for (var i = 0; i < temps.length; i++) {
+                        var t = temps.temp(i);
+                        if (summary.length > 0)
+                            summary += "\n";
+                        summary += t.label + ": " + t.value + "°C";
+                    }
+                    return summary;
+                }
 
                 onActivateRequested: window.showWindow()
                 onActivateProfile: {
                     Fancontrol.Base.applyProfile(profile);
                     Fancontrol.Base.apply();
                 }
+                onActivateService: Fancontrol.Base.systemdCom.serviceActive = active
+                onEnableService: Fancontrol.Base.systemdCom.serviceEnabled = enabled
             }
         }
     }
@@ -192,35 +205,34 @@ Kirigami.ApplicationWindow {
         y: (parent.height - height) / 2
     }
 
-//     Dialog {
-//         id: saveOnCloseDialog
-//
-//         property bool answered: false
-//
-//         visible: false
-//         modal: true
-//         title: i18n("Unsaved changes")
-//         standardButtons: Dialog.Cancel | Dialog.Discard | Dialog.Apply
-//         x: (window.width - width) / 2
-//         y: (window.height - height) / 2
-//
-//         onRejected: close()
-//         onDiscarded: {
-//             answered = true;
-//             close();
-//             window.close();
-//         }
-//         onApplied: {
-//             Fancontrol.Base.apply();
-//             answered = true;
-//             close();
-//             window.close();
-//         }
-//
-//         Label {
-//             id: text
-//             anchors.centerIn: parent
-//             text: i18n("There are unsaved changes.\nDo you want to apply these changes?")
-//         }
-//     }
+    Dialog {
+        id: saveOnCloseDialog
+
+        property bool answered: false
+
+        visible: false
+        modal: true
+        title: i18n("Unsaved changes")
+        standardButtons: Dialog.Cancel | Dialog.Discard | Dialog.Apply
+        x: (window.width - width) / 2
+        y: (window.height - height) / 2
+
+        onRejected: close()
+        onDiscarded: {
+            answered = true;
+            close();
+            window.close();
+        }
+        onApplied: {
+            Fancontrol.Base.apply();
+            answered = true;
+            close();
+            window.close();
+        }
+
+        Label {
+            anchors.centerIn: parent
+            text: i18n("There are unsaved changes.\nDo you want to apply these changes?")
+        }
+    }
 }

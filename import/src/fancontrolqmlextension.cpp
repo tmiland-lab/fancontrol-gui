@@ -32,7 +32,7 @@
 #include "systemdcommunicator.h"
 #endif
 
-#include <QtQml/qqml.h>
+#include <qqml.h>
 
 
 namespace Fancontrol
@@ -63,6 +63,4 @@ QObject * FancontrolQmlExtension::base(QQmlEngine *engine, QJSEngine *jsengine)
     return new GUIBase;
 }
 
-
 }
-

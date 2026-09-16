@@ -21,9 +21,9 @@
 #ifndef LOADER_H
 #define LOADER_H
 
-#include <QtCore/QMap>
-#include <QtCore/QObject>
-#include <QtCore/QUrl>
+#include <QMap>
+#include <QObject>
+#include <QUrl>
 
 
 class QFileSystemWatcher;
@@ -53,7 +53,7 @@ class Loader : public QObject
 
 public:
 
-    explicit Loader(GUIBase *parent = Q_NULLPTR);
+    explicit Loader(GUIBase *parent = nullptr);
 
     Q_INVOKABLE void parseHwmons(QString path = QString());
     Q_INVOKABLE bool load(const QUrl & = QUrl());

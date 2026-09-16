@@ -22,7 +22,7 @@
 #ifndef FANCONTROLKCM_H
 #define FANCONTROLKCM_H
 
-#include <KDeclarative/KQuickAddons/ConfigModule>
+#include <KQuickAddons/ConfigModule>
 
 
 using namespace KQuickAddons;
@@ -38,9 +38,9 @@ public:
 
 public slots:
 
-    void load() Q_DECL_OVERRIDE;
-    void save() Q_DECL_OVERRIDE;
-    void defaults() Q_DECL_OVERRIDE;
+    void load() override;
+    void save() override;
+    void defaults() override;
 
 
 signals:

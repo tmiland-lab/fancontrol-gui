@@ -22,8 +22,8 @@
 #ifndef TEMPTEST_H
 #define TEMPTEST_H
 
-#include <QtCore/QObject>
-#include <QtCore/QString>
+#include <QObject>
+#include <QString>
 
 #include "testtemp.h"
 

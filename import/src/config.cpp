@@ -39,7 +39,7 @@
 namespace Fancontrol
 {
 
-Config *Config::m_instance = Q_NULLPTR;
+Config *Config::m_instance = nullptr;
 
 Config::Config(QObject *parent) : KCoreConfigSkeleton(KSharedConfig::openConfig(QStringLiteral(CONFIG_NAME)), parent)
 {

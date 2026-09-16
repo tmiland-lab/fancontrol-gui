@@ -24,13 +24,13 @@
 
 #include "hwmon.h"
 
-#include <QtCore/QTextStream>
-#include <QtCore/QFile>
-#include <QtCore/QDir>
+#include <QTextStream>
+#include <QFile>
+#include <QDir>
 
-#include <KConfigCore/KSharedConfig>
-#include <KConfigCore/KConfigGroup>
-#include <KI18n/KLocalizedString>
+#include <KSharedConfig>
+#include <KConfigGroup>
+#include <KLocalizedString>
 
 
 #define TEST_HWMON_NAME "test"
@@ -123,7 +123,7 @@ void Temp::toDefault()
     if (m_valueStream->device() && parent())
     {
         auto valueDevice = m_valueStream->device();
-        m_valueStream->setDevice(Q_NULLPTR);
+        m_valueStream->setDevice(nullptr);
         delete valueDevice;
 
         auto path = device() ? parent()->path() + "/device" : parent()->path();

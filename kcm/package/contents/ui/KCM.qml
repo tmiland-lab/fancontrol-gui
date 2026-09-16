@@ -18,11 +18,11 @@
  */
 
 
-import QtQuick 2.6
-import QtQuick.Controls 2.1
-import QtQuick.Layouts 1.2
-import QtQuick.Dialogs 1.2
-import org.kde.kirigami 2.3 as Kirigami
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 2.15
+import QtQuick.Dialogs 6
+import org.kde.kirigami 2.14 as Kirigami
 import org.kde.kcm 1.0 as KCM
 import Fancontrol.Qml 1.0 as Fancontrol
 
@@ -44,19 +44,19 @@ Kirigami.Page {
 
     Connections {
         target: Fancontrol.Base
-        onNeedsApplyChanged: kcm.needsSave = Fancontrol.Base.needsApply
+        function onNeedsApplyChanged() { kcm.needsSave = Fancontrol.Base.needsApply }
     }
 
     Connections {
         target: kcm
-        onAboutToSave: {
+        function onAboutToSave() {
             Fancontrol.Base.apply();
         }
-        onAboutToLoad: {
+        function onAboutToLoad() {
             Fancontrol.Base.load();
             enabledBox.checked = systemdCom.serviceActive;
         }
-        onAboutToDefault: enabledBox.checked = false
+        function onAboutToDefault() { enabledBox.checked = false }
     }
 
     Loader {
@@ -84,7 +84,10 @@ Kirigami.Page {
 
         Connections {
             target: systemdCom
-            onServiceActiveChanged: if (systemdCom.serviceActive != enabledBox.checked) enabledBox.checked = systemdCom.serviceActive
+            function onServiceActiveChanged() {
+                if (systemdCom.serviceActive !== enabledBox.checked)
+                    enabledBox.checked = systemdCom.serviceActive
+            }
         }
     }
 

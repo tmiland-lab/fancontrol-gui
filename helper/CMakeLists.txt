@@ -1,21 +1,18 @@
-set(LIBRARIES Qt5::Core
-              KF5::Auth
-              KF5::I18n)
+set(LIBRARIES Qt6::Core
+              KF6::Auth
+              KF6::I18n)
 
 if(NOT NO_SYSTEMD)
 
     set(LIBRARIES ${LIBRARIES}
-                  Qt5::DBus)
-
-    find_package(Qt5DBus REQUIRED)
-    include_directories(${Qt5DBus_INCLUDE_DIRS})
+                  Qt6::DBus)
 
 endif(NOT NO_SYSTEMD)
 
-find_package(KF5Auth REQUIRED)
+find_package(KF6Auth REQUIRED)
 
 add_executable(fancontrol_gui-helper src/helper.cpp)
-target_link_libraries(fancontrol_gui-helper ${LIBRARIES})
+target_link_libraries(fancontrol_gui-helper PRIVATE ${LIBRARIES})
 install(TARGETS fancontrol_gui-helper DESTINATION ${KAUTH_HELPER_INSTALL_DIR})
 
 configure_file(helper.actions.in helper.actions @ONLY)

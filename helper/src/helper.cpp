@@ -19,18 +19,18 @@
 
 #include "helper.h"
 
-#include <QtCore/QFile>
-#include <QtCore/QTextStream>
-#include <QtCore/QFileInfo>
+#include <QFile>
+#include <QTextStream>
+#include <QFileInfo>
 
 #include <KAuth/KAuthHelperSupport>
-#include <KI18n/KLocalizedString>
+#include <KLocalizedString>
 
 #ifndef NO_SYSTEMD
-#include <QtDBus/QDBusInterface>
-#include <QtDBus/QDBusMetaType>
-#include <QtDBus/QDBusReply>
-#include <QtDBus/QDBusVariant>
+#include <QDBusInterface>
+#include <QDBusMetaType>
+#include <QDBusReply>
+#include <QDBusVariant>
 
 
 #ifndef STANDARD_HELPER_ID

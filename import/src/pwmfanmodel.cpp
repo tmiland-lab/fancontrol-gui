@@ -90,7 +90,7 @@ void PwmFanModel::setPwmFans(QList<PwmFan *> fans)
 
 void PwmFanModel::addPwmFan(PwmFan* newFan)
 {
-    for (const auto &oldFan : qAsConst(m_fans))
+    for (const auto &oldFan : std::as_const(m_fans))
     {
         if (*oldFan == *newFan)
             return;

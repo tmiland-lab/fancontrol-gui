@@ -22,8 +22,8 @@
 #ifndef FANTEST_H
 #define FANTEST_H
 
-#include <QtCore/QObject>
-#include <QtCore/QString>
+#include <QObject>
+#include <QString>
 
 #include "testfan.h"
 

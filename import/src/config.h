@@ -23,7 +23,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <KConfigCore/KCoreConfigSkeleton>
+#include <KCoreConfigSkeleton>
 
 
 namespace Fancontrol
@@ -41,7 +41,7 @@ public:
 
 private:
 
-    Config(QObject *parent = Q_NULLPTR);
+    Config(QObject *parent = nullptr);
     ~Config() {}
     Q_DISABLE_COPY(Config)
 

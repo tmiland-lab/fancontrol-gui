@@ -21,9 +21,9 @@
 
 #include "fancontrolkcm.h"
 
-#include <KCoreAddons/KAboutData>
-#include <KCoreAddons/KPluginFactory>
-#include <KI18n/KLocalizedString>
+#include <KAboutData>
+#include <KPluginFactory>
+#include <KLocalizedString>
 
 
 #ifndef STANDARD_HELPER_ID

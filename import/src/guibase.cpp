@@ -25,10 +25,10 @@
 #include "config.h"
 #include "hwmon.h"
 
-#include <QtCore/QLocale>
-#include <QtCore/QDebug>
+#include <QLocale>
+#include <QDebug>
 
-#include <KI18n/KLocalizedString>
+#include <KLocalizedString>
 
 
 namespace Fancontrol

@@ -23,7 +23,7 @@
 #define TESTPWMFAN_H
 
 
-#include <QtCore/QTextStream>
+#include <QTextStream>
 
 #include "pwmfan.h"
 
@@ -37,7 +37,7 @@ class TestPwmFan : public PwmFan
 
 public:
 
-    explicit TestPwmFan(QString *pwmString, QString *enableString, QString *rpmString, uint index = 0, Hwmon *parent = Q_NULLPTR);
+    explicit TestPwmFan(QString *pwmString, QString *enableString, QString *rpmString, uint index = 0, Hwmon *parent = nullptr);
 };
 
 #endif // TESTPWMFAN_H

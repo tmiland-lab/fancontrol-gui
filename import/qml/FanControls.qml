@@ -18,9 +18,9 @@
  */
 
 
-import QtQuick 2.6
-import QtQuick.Controls 2.1
-import QtQuick.Layouts 1.2
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 2.15
 import Fancontrol.Qml 1.0 as Fancontrol
 
 
@@ -50,11 +50,11 @@ ColumnLayout {
 
             Connections {
                 target: root
-                onFanChanged: hasTempCheckBox.checked = !!fan ? fan.hasTemp : false
+                function onFanChanged() { hasTempCheckBox.checked = !!fan ? fan.hasTemp : false }
             }
             Connections {
                 target: fan
-                onHasTempChanged: hasTempCheckBox.checked = fan.hasTemp
+                function onHasTempChanged() { hasTempCheckBox.checked = fan.hasTemp }
             }
         }
         RowLayout {
@@ -73,11 +73,11 @@ ColumnLayout {
 
             Connections {
                 target: root
-                onFanChanged: tempBox.currentIndex = !!fan && fan.hasTemp ? tempModel.indexOf(fan.temp) : -1
+                function onFanChanged() { tempBox.currentIndex = !!fan && fan.hasTemp ? tempModel.indexOf(fan.temp) : -1 }
             }
             Connections {
                 target: fan
-                onTempChanged: tempBox.currentIndex = !!fan && fan.hasTemp ? tempModel.indexOf(fan.temp) : -1
+                function onTempChanged() { tempBox.currentIndex = !!fan && fan.hasTemp ? tempModel.indexOf(fan.temp) : -1 }
             }
         }
     }
@@ -105,11 +105,11 @@ ColumnLayout {
 
             Connections {
                 target: root
-                onFanChanged: if (!!fan) averageInput.value = fan.average
+                function onFanChanged() { if (!!fan) averageInput.value = fan.average }
             }
             Connections {
                 target: fan
-                onAverageChanged: averageInput.value = fan.average
+                function onAverageChanged() { averageInput.value = fan.average }
             }
         }
     }
@@ -119,7 +119,7 @@ ColumnLayout {
 
         text: i18n("Turn Fan off if temp < MINTEMP")
         enabled: hasTempCheckBox.checked
-        checked: !!fan ? fan.minPwm == 0 : false
+        checked: !!fan ? fan.minPwm === 0 : false
         onCheckedChanged: {
             if (!!fan) {
                 fan.minPwm = checked ? 0 : fan.minStop;
@@ -128,11 +128,11 @@ ColumnLayout {
 
         Connections {
             target: root
-            onFanChanged: if (!!fan) fanOffCheckBox.checked = fan.minPwm == 0
+            function onFanChanged() { if (!!fan) fanOffCheckBox.checked = fan.minPwm === 0 }
         }
         Connections {
             target: fan
-            onMinPwmChanged: fanOffCheckBox.checked = fan.minPwm == 0
+            function onMinPwmChanged() { fanOffCheckBox.checked = fan.minPwm === 0 }
         }
     }
 
@@ -161,11 +161,11 @@ ColumnLayout {
 
             Connections {
                 target: root
-                onFanChanged: if (!!fan) minStartInput.value = Math.round(fan.minStart / 2.55)
+                function onFanChanged() { if (!!fan) minStartInput.value = Math.round(fan.minStart / 2.55) }
             }
             Connections {
                 target: fan
-                onMinStartChanged: minStartInput.value = Math.round(fan.minStart / 2.55)
+                function onMinStartChanged() { minStartInput.value = Math.round(fan.minStart / 2.55) }
             }
         }
     }

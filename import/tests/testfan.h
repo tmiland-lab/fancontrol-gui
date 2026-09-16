@@ -25,7 +25,7 @@
 
 #include "fan.h"
 
-#include <QtCore/QTextStream>
+#include <QTextStream>
 
 
 using namespace Fancontrol;
@@ -37,7 +37,7 @@ class TestFan : public Fan
 
 public:
 
-    explicit TestFan(QString *rpmString, uint index = 0, Hwmon *parent = Q_NULLPTR);
+    explicit TestFan(QString *rpmString, uint index = 0, Hwmon *parent = nullptr);
 };
 
 #endif // TESTFAN_H

@@ -96,7 +96,7 @@ void TempModel::setTemps(QList<Temp *> temps)
 
 void TempModel::addTemp(Temp *newTemp)
 {
-    for (const auto &oldTemp : qAsConst(m_temps))
+    for (const auto &oldTemp : std::as_const(m_temps))
     {
         if (*oldTemp == *newTemp)
             return;

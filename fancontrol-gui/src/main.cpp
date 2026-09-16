@@ -17,19 +17,19 @@
  *
  */
 
-#include <QtQml/QQmlContext>
-#include <QtCore/QCommandLineParser>
-#include <QtCore/QLoggingCategory>
-#include <QtGui/QIcon>
-#include <QtGui/QWindow>
-#include <QtWidgets/QApplication>
+#include <QQmlContext>
+#include <QCommandLineParser>
+#include <QLoggingCategory>
+#include <QIcon>
+#include <QWindow>
+#include <QApplication>
 
 #include <KDeclarative/QmlObject>
-#include <KI18n/KLocalizedString>
-#include <KCoreAddons/KAboutData>
-#include <KDBusAddons/KDBusService>
-#include <KConfigCore/KSharedConfig>
-#include <KConfigGui/KWindowConfig>
+#include <KLocalizedString>
+#include <KAboutData>
+#include <KDBusService>
+#include <KSharedConfig>
+#include <KWindowConfig>
 
 #include "systemtrayicon.h"
 
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
     {
         KConfigGroup configGroup(KSharedConfig::openConfig(QStringLiteral(CONFIG_NAME)), "window");
         KWindowConfig::restoreWindowSize(s_window, configGroup);
-        QObject::connect(&app, &QApplication::aboutToQuit, s_window, [] () {
+        QObject::connect(&app, &QApplication::aboutToQuit, s_window, []() {
             KConfigGroup configGroup(KSharedConfig::openConfig(QStringLiteral(CONFIG_NAME)), "window");
             KWindowConfig::saveWindowSize(s_window, configGroup);
             configGroup.sync();

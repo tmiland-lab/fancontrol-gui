@@ -25,15 +25,15 @@
 #include "hwmon.h"
 #include "fancontrolaction.h"
 
-#include <QtCore/QTextStream>
-#include <QtCore/QTimer>
-#include <QtCore/QDir>
-#include <QtCore/QFile>
+#include <QTextStream>
+#include <QTimer>
+#include <QDir>
+#include <QFile>
 
-#include <KConfigCore/KConfigGroup>
-#include <KConfigCore/KSharedConfig>
+#include <KConfigGroup>
+#include <KSharedConfig>
 #include <KAuth/KAuthExecuteJob>
-#include <KI18n/KLocalizedString>
+#include <KLocalizedString>
 
 
 #define TEST_HWMON_NAME "test"
@@ -48,7 +48,7 @@ PwmFan::PwmFan(uint index, Hwmon *parent, bool device) : Fan(index, parent, devi
     m_enableStream(new QTextStream),
     m_pwm(0),
     m_pwmEnable(FullSpeed),
-    m_temp(Q_NULLPTR),
+    m_temp(nullptr),
     m_hasTemp(false),
     m_minTemp(0),
     m_maxTemp(100),
@@ -142,7 +142,7 @@ void PwmFan::toDefault()
     Fan::toDefault();
 
     setHasTemp(false);
-    setTemp(Q_NULLPTR);
+    setTemp(nullptr);
     setPwm(0, false);
     setPwmEnable(FullSpeed, false);
     setMinTemp(0);
@@ -164,11 +164,11 @@ void PwmFan::toDefault()
         auto path = device() ? parent()->path() + "/device" : parent()->path();
 
         auto device = m_pwmStream->device();
-        m_pwmStream->setDevice(Q_NULLPTR);
+        m_pwmStream->setDevice(nullptr);
         delete device;
 
         device = m_enableStream->device();
-        m_enableStream->setDevice(Q_NULLPTR);
+        m_enableStream->setDevice(nullptr);
         delete device;
 
         const auto pwmFile = new QFile(path + "/pwm" + QString::number(index()), this);

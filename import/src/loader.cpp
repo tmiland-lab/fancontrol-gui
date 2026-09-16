@@ -26,14 +26,15 @@
 #include "fan.h"
 #include "fancontrolaction.h"
 
-#include <QtCore/QFile>
-#include <QtCore/QFileSystemWatcher>
-#include <QtCore/QDir>
-#include <QtCore/QTextStream>
-#include <QtCore/QTimer>
+#include <QFile>
+#include <QFileSystemWatcher>
+#include <QDir>
+#include <QTextStream>
+#include <QTimer>
+#include <QRegularExpression>
 
 #include <KAuth/KAuthExecuteJob>
-#include <KI18n/KLocalizedString>
+#include <KLocalizedString>
 
 
 #define HWMON_PATH "/sys/class/hwmon"
@@ -99,7 +100,7 @@ void Loader::parseHwmons(QString path)
     }
     m_hwmons.clear();
 
-    for (const auto &hwmonPath : qAsConst(dereferencedList))
+    for (const auto &hwmonPath : std::as_const(dereferencedList))
     {
         auto newHwmon = new Hwmon(hwmonPath, this);
 
@@ -127,30 +128,30 @@ void Loader::parseHwmons(QString path)
 
 PwmFan * Loader::pwmFan(uint hwmonIndex, uint pwmFanIndex) const
 {
-    const auto hwmon = m_hwmons.value(hwmonIndex, Q_NULLPTR);
+    const auto hwmon = m_hwmons.value(hwmonIndex, nullptr);
 
     if (!hwmon)
-        return Q_NULLPTR;
+        return nullptr;
 
     return hwmon->pwmFans().value(pwmFanIndex);
 }
 
 Temp * Loader::temp(uint hwmonIndex, uint tempIndex) const
 {
-    const auto hwmon = m_hwmons.value(hwmonIndex, Q_NULLPTR);
+    const auto hwmon = m_hwmons.value(hwmonIndex, nullptr);
 
     if (!hwmon)
-        return Q_NULLPTR;
+        return nullptr;
 
     return hwmon->temps().value(tempIndex);
 }
 
 Fan * Loader::fan(uint hwmonIndex, uint fanIndex) const
 {
-    const auto hwmon = m_hwmons.value(hwmonIndex, Q_NULLPTR);
+    const auto hwmon = m_hwmons.value(hwmonIndex, nullptr);
 
     if (!hwmon)
-        return Q_NULLPTR;
+        return nullptr;
 
     return hwmon->fans().value(fanIndex);
 }
@@ -160,7 +161,7 @@ QPair<uint, uint> Loader::getEntryNumbers(const QString &entry)
     if (entry.isEmpty())
         return QPair<uint, uint>(0, 0);
 
-    auto list = entry.split('/', QString::SkipEmptyParts);
+    auto list = entry.split('/', Qt::SkipEmptyParts);
     if (list.size() < 2)
     {
         emit error(i18n("Invalid entry: \'%1\'", entry));
@@ -174,7 +175,7 @@ QPair<uint, uint> Loader::getEntryNumbers(const QString &entry)
         emit error(i18n("Invalid entry: \'%1\'", entry));
         return QPair<uint, uint>(0, 0);
     }
-    if (!sensor.contains(QRegExp("^(pwm|fan|temp)\\d+")))
+    if (!sensor.contains(QRegularExpression(QStringLiteral("^(pwm|fan|temp)\\d+"))))
     {
         emit error(i18n("Invalid entry: \'%1\'", entry));
         return QPair<uint, uint>(0, 0);
@@ -183,7 +184,7 @@ QPair<uint, uint> Loader::getEntryNumbers(const QString &entry)
     auto success = false;
 
     hwmon.remove(QStringLiteral("hwmon"));
-    sensor.remove(QRegExp("^(pwm|fan|temp)"));
+    sensor.remove(QRegularExpression(QStringLiteral("^(pwm|fan|temp)")));
     sensor.remove(QStringLiteral("_input"));
 
     const auto hwmonResult = hwmon.toUInt(&success);
@@ -206,7 +207,7 @@ bool Loader::parseConfig(QString config)
 {
     //Disconnect hwmons for performance reasons
     //They get reconnected later
-    for (const auto &hwmon : qAsConst(m_hwmons))
+    for (const auto &hwmon : std::as_const(m_hwmons))
     {
         disconnect(hwmon, &Hwmon::configUpdateNeeded, this, &Loader::updateConfig);
     }
@@ -234,7 +235,7 @@ bool Loader::parseConfig(QString config)
     }
     while (!stream.atEnd());
 
-    for (auto line : qAsConst(lines))
+    for (auto line : std::as_const(lines))
     {
         if (line.startsWith(QStringLiteral("INTERVAL=")))
         {
@@ -300,7 +301,7 @@ bool Loader::parseConfig(QString config)
                     const auto &name = indexNamePair.at(1);
                     auto intSuccess = false;
                     index.remove(QStringLiteral("hwmon"));
-                    const auto hwmonPointer = m_hwmons.value(index.toUInt(&intSuccess), Q_NULLPTR);
+                    const auto hwmonPointer = m_hwmons.value(index.toUInt(&intSuccess), nullptr);
 
                     if (!intSuccess)
                     {
@@ -369,7 +370,7 @@ bool Loader::parseConfig(QString config)
     updateConfig();
 
     //Connect hwmons again
-    for (const auto &hwmon : qAsConst(m_hwmons))
+    for (const auto &hwmon : std::as_const(m_hwmons))
         connect(hwmon, &Hwmon::configUpdateNeeded, this, &Loader::updateConfig);
 
     return success;
@@ -657,18 +658,18 @@ QString Loader::createConfig() const
     {
         configFile += QLatin1String("DEVPATH=");
 
-        for (const auto &hwmon : qAsConst(usedHwmons))
+        for (const auto &hwmon : std::as_const(usedHwmons))
         {
             auto sanitizedPath = hwmon->path();
-            sanitizedPath.remove(QRegExp("^/sys/"));
-            sanitizedPath.remove(QRegExp("/hwmon/hwmon\\d\\s*$"));
+            sanitizedPath.remove(QRegularExpression(QStringLiteral("^/sys/")));
+            sanitizedPath.remove(QRegularExpression(QStringLiteral("/hwmon/hwmon\\d\\s*$")));
             configFile += "hwmon" + QString::number(hwmon->index()) + "=" + sanitizedPath + QChar(QChar::Space);
         }
         configFile += QChar(QChar::LineFeed);
 
         configFile += QLatin1String("DEVNAME=");
 
-        for (const auto &hwmon : qAsConst(usedHwmons))
+        for (const auto &hwmon : std::as_const(usedHwmons))
             configFile += "hwmon" + QString::number(hwmon->index()) + "=" + hwmon->name().split('.').first() + QChar(QChar::Space);
 
         configFile += QChar(QChar::LineFeed);
@@ -677,7 +678,7 @@ QString Loader::createConfig() const
         {
             configFile += QLatin1String("FCTEMPS=");
 
-            for (const auto &pwmFan : qAsConst(usedFans))
+            for (const auto &pwmFan : std::as_const(usedFans))
             {
                 configFile += "hwmon" + QString::number(pwmFan->parent()->index());
                 configFile += pwmFan->device() ? "/device/" : "/";
@@ -690,7 +691,7 @@ QString Loader::createConfig() const
 
             configFile += QLatin1String("FCFANS=");
 
-            for (const auto &pwmFan : qAsConst(usedFans))
+            for (const auto &pwmFan : std::as_const(usedFans))
             {
                 configFile += "hwmon" + QString::number(pwmFan->parent()->index());
                 configFile += pwmFan->device() ? "/device/" : "/";
@@ -703,7 +704,7 @@ QString Loader::createConfig() const
 
             configFile += QLatin1String("MINTEMP=");
 
-            for (const auto &pwmFan : qAsConst(usedFans))
+            for (const auto &pwmFan : std::as_const(usedFans))
             {
                 configFile += "hwmon" + QString::number(pwmFan->parent()->index());
                 configFile += pwmFan->device() ? "/device/" : "/";
@@ -714,7 +715,7 @@ QString Loader::createConfig() const
 
             configFile += QLatin1String("MAXTEMP=");
 
-            for (const auto &pwmFan : qAsConst(usedFans))
+            for (const auto &pwmFan : std::as_const(usedFans))
             {
                 configFile += "hwmon" + QString::number(pwmFan->parent()->index());
                 configFile += pwmFan->device() ? "/device/" : "/";
@@ -725,7 +726,7 @@ QString Loader::createConfig() const
 
             configFile += QLatin1String("MINSTART=");
 
-            for (const auto &pwmFan : qAsConst(usedFans))
+            for (const auto &pwmFan : std::as_const(usedFans))
             {
                 configFile += "hwmon" + QString::number(pwmFan->parent()->index());
                 configFile += pwmFan->device() ? "/device/" : "/";
@@ -736,7 +737,7 @@ QString Loader::createConfig() const
 
             configFile += QLatin1String("MINSTOP=");
 
-            for (const auto &pwmFan : qAsConst(usedFans))
+            for (const auto &pwmFan : std::as_const(usedFans))
             {
                 configFile += "hwmon" + QString::number(pwmFan->parent()->index());
                 configFile += pwmFan->device() ? "/device/" : "/";
@@ -747,7 +748,7 @@ QString Loader::createConfig() const
 
             configFile += QLatin1String("MINPWM=");
 
-            for (const auto &pwmFan : qAsConst(usedFans))
+            for (const auto &pwmFan : std::as_const(usedFans))
             {
                 configFile += "hwmon" + QString::number(pwmFan->parent()->index());
                 configFile += pwmFan->device() ? "/device/" : "/";
@@ -758,7 +759,7 @@ QString Loader::createConfig() const
 
             configFile += QLatin1String("MAXPWM=");
 
-            for (const auto &pwmFan : qAsConst(usedFans))
+            for (const auto &pwmFan : std::as_const(usedFans))
             {
                 configFile += "hwmon" + QString::number(pwmFan->parent()->index());
                 configFile += pwmFan->device() ? "/device/" : "/";
@@ -769,7 +770,7 @@ QString Loader::createConfig() const
 
             configFile += QLatin1String("AVERAGE=");
 
-            for (const auto &pwmFan : qAsConst(usedFans))
+            for (const auto &pwmFan : std::as_const(usedFans))
             {
                 configFile += "hwmon" + QString::number(pwmFan->parent()->index());
                 configFile += pwmFan->device() ? "/device/" : "/";
@@ -812,13 +813,13 @@ void Loader::setInterval(int interval, bool writeNewConfig)
 
 void Loader::testFans()
 {
-    for (const auto &hwmon : qAsConst(m_hwmons))
+    for (const auto &hwmon : std::as_const(m_hwmons))
         hwmon->testFans();
 }
 
 void Loader::abortTestingFans()
 {
-    for (const auto &hwmon : qAsConst(m_hwmons))
+    for (const auto &hwmon : std::as_const(m_hwmons))
         hwmon->abortTestingFans();
 }
 
@@ -835,7 +836,7 @@ void Loader::handleTestStatusChanged()
 {
     auto testing = false;
 
-    for (const auto &hwmon : qAsConst(m_hwmons))
+    for (const auto &hwmon : std::as_const(m_hwmons))
     {
         if (hwmon->testing() == true)
         {
@@ -861,7 +862,7 @@ void Loader::setRestartServiceAfterTesting(bool restart)
 
 void Loader::toDefault()
 {
-    for (const auto &hwmon : qAsConst(m_hwmons))
+    for (const auto &hwmon : std::as_const(m_hwmons))
         hwmon->toDefault();
     }
 }

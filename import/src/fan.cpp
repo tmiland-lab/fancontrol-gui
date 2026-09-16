@@ -22,13 +22,13 @@
 
 #include "hwmon.h"
 
-#include <QtCore/QTextStream>
-#include <QtCore/QDir>
-#include <QtCore/QFile>
+#include <QTextStream>
+#include <QDir>
+#include <QFile>
 
-#include <KConfigCore/KSharedConfig>
-#include <KConfigCore/KConfigGroup>
-#include <KI18n/KLocalizedString>
+#include <KSharedConfig>
+#include <KConfigGroup>
+#include <KLocalizedString>
 
 
 #define TEST_HWMON_NAME "test"
@@ -101,7 +101,7 @@ void Fan::toDefault()
     if (m_rpmStream->device() && parent())
     {
         auto rpmDevice = m_rpmStream->device();
-        m_rpmStream->setDevice(Q_NULLPTR);
+        m_rpmStream->setDevice(nullptr);
         delete rpmDevice;
 
         auto path = device() ? parent()->path() + "/device" : parent()->path();
