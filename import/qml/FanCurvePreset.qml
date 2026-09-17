@@ -132,11 +132,13 @@ RowLayout {
             return;
 
         // Measured hardware values from the test (0..255).
-        // When the test failed (fallback == true), use safe static defaults
-        // because the test may have left minStart/minStop untouched.
+        // Only trust them when the test actually finished: an untouched fan
+        // keeps its default minStart/minStop of 255 (i.e. "unknown"), which
+        // would otherwise produce an invalid MINSTOP >= MAXPWM config.
         var minStart;
         var minStop;
-        if (!fallback && fan.minStart > 0 && fan.minStop > 0) {
+        if (!fallback && fan.testStatus === Fancontrol.PwmFan.Finished &&
+                fan.minStart > 0 && fan.minStop > 0 && fan.minStop < 255) {
             minStart = fan.minStart;
             minStop = fan.minStop;
         } else {
