@@ -6,11 +6,24 @@
     <name>Fancontrol-GUI</name>
     <summary>GUI frontend for the fancontrol script</summary>
     <url type="homepage">https://github.com/Maldela/fancontrol-gui</url>
+    <launchable type="desktop-id">org.kde.fancontrol.gui.desktop</launchable>
     <description>
-        GUI frontend for the fancontrol script.
+        <p>
+            Fancontrol-GUI is a graphical user interface for the fancontrol
+            script. It lets you monitor temperatures and fan speeds, tune the
+            fan curve for each PWM fan, test start and stop values, and manage
+            profiles for different scenarios.
+        </p>
+        <p>
+            The application integrates with the desktop through a system tray
+            icon, sends desktop notifications when a temperature crosses a
+            configurable threshold, and can control the fancontrol systemd
+            service directly from the interface.
+        </p>
     </description>
     <categories>
         <category>System</category>
+        <category>Utility</category>
     </categories>
     <developer_name>Malte Veerman</developer_name>
     <provides>

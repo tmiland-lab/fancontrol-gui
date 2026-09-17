@@ -147,6 +147,9 @@ private:
     int m_minStop;
     int m_average;
     int m_zeroRpm;
+    int m_lastPwm;
+    int m_noProgress;
+    int m_findStartPwm;
     TestStatus m_testStatus;
 };
 

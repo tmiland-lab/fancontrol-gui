@@ -73,7 +73,7 @@ RowLayout {
 
             Connections {
                 target: !!fan ? fan : null
-                onNameChanged: if (fan.name != nameField.text) nameField.text = fan.name
+                function onNameChanged() { if (fan.name != nameField.text) nameField.text = fan.name }
             }
 
             MouseArea {

@@ -20,6 +20,7 @@
 
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import QtQuick.Layouts 2.15
 import org.kde.kirigami 2.14 as Kirigami
 import Fancontrol.Qml 1.0 as Fancontrol
 
@@ -33,11 +34,47 @@ Kirigami.Page {
 
     id: root
 
-    header: Fancontrol.FanHeader {
-        fan: root.fan
+    header: ColumnLayout {
+        spacing: 0
+
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.leftMargin: Kirigami.Units.largeSpacing
+            Layout.rightMargin: Kirigami.Units.largeSpacing
+            Layout.topMargin: Kirigami.Units.smallSpacing
+
+            Label {
+                text: i18n("Profile:")
+            }
+            ComboBox {
+                id: profileCombo
+
+                Layout.fillWidth: true
+                model: root.profileModel
+                textRole: "display"
+                currentIndex: Fancontrol.Base.currentProfileIndex
+
+                onActivated: {
+                    Fancontrol.Base.applyProfile(currentIndex);
+                    Fancontrol.Base.apply();
+                }
+
+                Connections {
+                    target: Fancontrol.Base
+                    function onCurrentProfileChanged() {
+                        profileCombo.currentIndex = Fancontrol.Base.currentProfileIndex;
+                    }
+                }
+            }
+        }
+
+        Fancontrol.FanHeader {
+            fan: root.fan
+            Layout.fillWidth: true
+        }
     }
 
-    contextualActions: [
+    actions: [
         Kirigami.Action {
             text: i18n("Manage profiles")
             onTriggered: profilesDialog.open()
@@ -71,26 +108,25 @@ Kirigami.Page {
                     fan.test();
                 }
             }
+        },
+        Kirigami.Action {
+            text: i18n("Apply")
+            enabled: Fancontrol.Base.needsApply
+            icon.name: "dialog-ok-apply"
+            tooltip: i18n("Apply changes")
+            shortcut: StandardKey.Apply
+
+            onTriggered: Fancontrol.Base.apply()
+        },
+        Kirigami.Action {
+            text: i18n("Reset")
+            enabled: Fancontrol.Base.needsApply
+            icon.name: "edit-undo"
+            tooltip: i18n("Revert changes")
+
+            onTriggered: Fancontrol.Base.reset()
         }
     ]
-
-    mainAction: Kirigami.Action {
-        text: i18n("Apply")
-        enabled: Fancontrol.Base.needsApply
-        icon.name: "dialog-ok-apply"
-        tooltip: i18n("Apply changes")
-        shortcut: StandardKey.Apply
-
-        onTriggered: Fancontrol.Base.apply()
-    }
-    rightAction: Kirigami.Action {
-        text: i18n("Reset")
-        enabled: Fancontrol.Base.needsApply
-        icon.name: "edit-undo"
-        tooltip: i18n("Revert changes")
-
-        onTriggered: Fancontrol.Base.reset()
-    }
 
     Loader {
         anchors.fill: parent

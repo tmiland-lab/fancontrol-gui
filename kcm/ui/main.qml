@@ -117,23 +117,19 @@ KCM.ConfigModule {
                 boundsBehavior: Flickable.StopAtBounds
                 flickableDirection: Flickable.AutoFlickIfNeeded
                 model: pwmFanModel
-                header: Kirigami.BasicListItem {
-                    label: '<b>' + i18n("Fans") + '</b>'
-                    reserveSpaceForIcon: false
+                header: ItemDelegate {
+                    text: '<b>' + i18n("Fans") + '</b>'
                     hoverEnabled: false
-                    separatorVisible: false
-                    leftPadding: Kirigami.Units.smallSpacing
+                    enabled: false
+                    padding: Kirigami.Units.smallSpacing
                 }
-                delegate: Kirigami.BasicListItem {
+                delegate: ItemDelegate {
                     property QtObject fan: object
 
-                    label: display
-                    reserveSpaceForIcon: false
+                    text: display
                     hoverEnabled: true
                     highlighted: ListView.isCurrentItem
-                    separatorVisible: false
-
-                    onPressedChanged: if (pressed) fansListView.currentIndex = index;
+                    onClicked: fansListView.currentIndex = index
                 }
             }
         }

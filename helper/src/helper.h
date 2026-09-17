@@ -18,6 +18,8 @@
  */
 
 #include <KAuth/ActionReply>
+#include <QObject>
+#include <QString>
 
 
 using namespace KAuth;
@@ -29,4 +31,8 @@ class Helper : public QObject
     public Q_SLOTS:
 
         ActionReply action(const QVariantMap &args);
+
+    private:
+
+        static bool isWritablePath(const QString &filename);
 };

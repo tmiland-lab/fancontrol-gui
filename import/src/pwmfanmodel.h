@@ -56,6 +56,7 @@ public:
     void updateFan(PwmFan *fan);
 
     Q_INVOKABLE QObject *fan(int index) const;
+    QList<PwmFan *> fans() const { return m_fans; }
 
 
 Q_SIGNALS:

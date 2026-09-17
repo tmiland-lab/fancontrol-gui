@@ -40,7 +40,6 @@ Item {
     implicitHeight: Kirigami.Units.gridUnit * 14
 
     readonly property int maxSamples: root.rangeMinutes * 60
-    readonly property var rowsModel: root.rowsModel
     readonly property real currentMax: {
         var max = root.axisMin;
         for (var i = 0; i < seriesKeys.length; i++) {
@@ -333,6 +332,11 @@ Item {
                         spacing: 2
                         Layout.preferredWidth: implicitWidth
 
+                        readonly property string currentValueText: {
+                            var arr = root.series[label];
+                            return arr && arr.length > 0 ? arr[arr.length - 1].toFixed(1) + i18n("°C") : "-";
+                        }
+
                         Rectangle {
                             width: 10
                             height: 10
@@ -349,9 +353,5 @@ Item {
                 }
             }
         }
-    }
-
-    component CurrentValueText: QtObject {
-        readonly property string value: ""
     }
 }

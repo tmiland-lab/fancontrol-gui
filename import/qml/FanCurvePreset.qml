@@ -21,98 +21,161 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
 import org.kde.kirigami 2.14 as Kirigami
+import Fancontrol.Qml 1.0 as Fancontrol
 
 RowLayout {
     id: root
 
     property QtObject fan
     readonly property bool enabled: !!fan && fan.hasTemp
+    readonly property bool running: !!fan && fan.testing
+    readonly property int globalMinTemp: Math.ceil(Fancontrol.Base.minTemp)
+    readonly property int globalMaxTemp: Math.floor(Fancontrol.Base.maxTemp)
 
-    ButtonGroup {
-        id: presetGroup
-    }
+    property int pendingProfile: -1
+    property int idleTemp: -1
 
-    Button {
-        id: silentButton
-        text: i18n("Silent")
-        icon.name: "weather-clear-night"
-        enabled: root.enabled
-        Layout.fillWidth: true
-        tooltip: i18n("Low fan speeds, prioritizes quiet operation")
-        checkable: true
-        ButtonGroup.group: presetGroup
+    readonly property var profiles: [
+        { name: i18n("Silent"), icon: "weather-clear-night", minPwm: 0,     maxPwm: 0.60, minTempOffset: 10, maxTempOffset: 30, tooltip: i18n("Apply a quiet fan curve") },
+        { name: i18n("Cool"),   icon: "weather-snow",        minPwm: 0,     maxPwm: 1.00, minTempOffset: 3,  maxTempOffset: 18, tooltip: i18n("Apply a cool and quiet fan curve") },
+        { name: i18n("Balanced"), icon: "preferences-system-balance", minPwm: 0,  maxPwm: 1.00, minTempOffset: 5, maxTempOffset: 20, tooltip: i18n("Apply a balanced fan curve") },
+        { name: i18n("Performance"), icon: "speedometer",    minPwm: -1,    maxPwm: 1.00, minTempOffset: 1,  maxTempOffset: 10, tooltip: i18n("Apply an aggressive fan curve") }
+    ]
 
-        onToggled: {
-            if (checked) {
-                root.fan.minPwm = 0;
-                root.fan.minTemp = 50;
-                root.fan.minStart = Math.round(25 * 2.55);
-                root.fan.minStop = Math.round(20 * 2.55);
-                root.fan.maxPwm = Math.round(70 * 2.55);
-                root.fan.maxTemp = 75;
+    Connections {
+        target: fan
+
+        function onTestStatusChanged() {
+            if (!root.fan || root.pendingProfile < 0)
+                return;
+
+            if (root.fan.testStatus === Fancontrol.PwmFan.Finished) {
+                root.applyProfile(root.pendingProfile, root.idleTemp, false);
+                root.save();
+            } else if (root.fan.testStatus === Fancontrol.PwmFan.Error ||
+                       root.fan.testStatus === Fancontrol.PwmFan.Cancelled) {
+                // The test could not be completed (e.g. no permission to set
+                // the PWM). Apply a static fallback curve so the buttons never
+                // hang and a profile is still produced.
+                root.applyProfile(root.pendingProfile, root.idleTemp, true);
+                root.save();
             }
         }
     }
 
-    Button {
-        id: balancedButton
-        text: i18n("Balanced")
-        icon.name: "preferences-system-balance"
-        enabled: root.enabled
-        Layout.fillWidth: true
-        tooltip: i18n("Balanced fan curve for typical workloads")
-        checkable: true
-        ButtonGroup.group: presetGroup
+    Repeater {
+        model: root.profiles
 
-        onToggled: {
-            if (checked) {
-                root.fan.minPwm = Math.round(20 * 2.55);
-                root.fan.minTemp = 40;
-                root.fan.minStart = Math.round(30 * 2.55);
-                root.fan.minStop = Math.round(25 * 2.55);
-                root.fan.maxPwm = Math.round(100 * 2.55);
-                root.fan.maxTemp = 75;
-            }
+        delegate: Button {
+            text: modelData.name
+            icon.name: modelData.icon
+            enabled: root.enabled && !root.running
+            Layout.fillWidth: true
+            ToolTip.text: modelData.tooltip
+            ToolTip.visible: hovered
+            ToolTip.delay: Kirigami.Units.toolTipDelay
+
+            onClicked: root.selectPreset(index)
         }
     }
 
     Button {
-        id: performanceButton
-        text: i18n("Performance")
-        icon.name: "speedometer"
+        text: root.running ? i18n("Autotuning…") : i18n("Autotune")
+        icon.name: "run-build"
         enabled: root.enabled
-        Layout.fillWidth: true
-        tooltip: i18n("More aggressive cooling, higher noise")
-        checkable: true
-        ButtonGroup.group: presetGroup
+        Layout.minimumWidth: Kirigami.Units.gridUnit * 8
+        ToolTip.text: i18n("Measure the fan's actual start and stop values")
+        ToolTip.visible: hovered
+        ToolTip.delay: Kirigami.Units.toolTipDelay
 
-        onToggled: {
-            if (checked) {
-                root.fan.minPwm = Math.round(30 * 2.55);
-                root.fan.minTemp = 35;
-                root.fan.minStart = Math.round(40 * 2.55);
-                root.fan.minStop = Math.round(35 * 2.55);
-                root.fan.maxPwm = Math.round(100 * 2.55);
-                root.fan.maxTemp = 60;
-            }
+        onClicked: {
+            if (root.running)
+                fan.abortTest();
+            else
+                root.autotune(root.pendingProfile >= 0 ? root.pendingProfile : 0);
         }
     }
 
-    onFanChanged: updateChecks()
-    Component.onCompleted: updateChecks()
+    function bound(value, minimum, maximum) {
+        return Math.max(minimum, Math.min(maximum, value));
+    }
 
-    function updateChecks() {
-        if (!root.fan) {
-            silentButton.checked = false;
-            balancedButton.checked = false;
-            performanceButton.checked = false;
+    function selectPreset(index) {
+        if (!root.enabled || root.running)
             return;
+
+        // Apply the preset curve immediately, using the last measured start
+        // and stop values when available.
+        root.idleTemp = !!fan.temp ? fan.temp.value : 40;
+        root.pendingProfile = index;
+        root.applyProfile(index, root.idleTemp, false);
+        root.save();
+    }
+
+    function autotune(index) {
+        if (!root.enabled || root.running)
+            return;
+
+        // Capture idle temperature BEFORE the test: the test spins the fan
+        // at full speed and cools the system down, which would skew the baseline.
+        root.idleTemp = !!fan.temp ? fan.temp.value : 40;
+        root.pendingProfile = index >= 0 ? index : 0;
+        fan.test();
+    }
+
+    function applyProfile(index, idle, fallback) {
+        if (!fan)
+            return;
+
+        var profile = root.profiles[index];
+        if (!profile)
+            return;
+
+        // Measured hardware values from the test (0..255).
+        // When the test failed (fallback == true), use safe static defaults
+        // because the test may have left minStart/minStop untouched.
+        var minStart;
+        var minStop;
+        if (!fallback && fan.minStart > 0 && fan.minStop > 0) {
+            minStart = fan.minStart;
+            minStop = fan.minStop;
+        } else {
+            minStart = Math.round(25 * 2.55);
+            minStop = Math.round(20 * 2.55);
         }
-        if (root.fan.minPwm === 0)
-            silentButton.checked = true;
-        else if (root.fan.minPwm > Math.round(70 * 2.55))
-            performanceButton.checked = true;
-        else
-            balancedButton.checked = true;
+
+        // Profile-specific fan-off behavior.
+        // minPwm === -1 means: always keep spinning (minPwm = minStop).
+        fan.minPwm = profile.minPwm >= 0 ? Math.round(profile.minPwm * 2.55) : minStop;
+        fan.minStart = minStart;
+        fan.minStop = minStop;
+
+        // Temperature thresholds relative to the measured idle temperature.
+        var minTemp = bound(idle + profile.minTempOffset, root.globalMinTemp, root.globalMaxTemp - 1);
+        var maxTemp = bound(idle + profile.maxTempOffset, minTemp + 1, root.globalMaxTemp);
+
+        // Amplitude, relative to the measured start value.
+        var ampl = Math.max(0, 255 - minStop);
+        var maxPwm = minStop + Math.round(ampl * profile.maxPwm);
+
+        fan.minTemp = minTemp;
+        fan.maxTemp = maxTemp;
+        fan.maxPwm = Math.round(bound(maxPwm, fan.minPwm, 255));
+    }
+
+    function save() {
+        // Persist the generated curve as a named profile so the user can
+        // re-apply it later from the system tray or the Profiles dialog.
+        var profile = root.profiles[root.pendingProfile];
+        if (profile) {
+            Fancontrol.Base.saveProfile(profile.name);
+            Fancontrol.Base.apply();
+        }
+        root.reset();
+    }
+
+    function reset() {
+        root.pendingProfile = -1;
+        root.idleTemp = -1;
     }
 }

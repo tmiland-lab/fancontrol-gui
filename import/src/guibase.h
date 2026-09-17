@@ -116,6 +116,7 @@ public:
     Q_INVOKABLE bool hasSystemdCommunicator() const;
     Q_INVOKABLE void load();
     Q_INVOKABLE void apply();
+    Q_INVOKABLE void applyFanPwm();
     Q_INVOKABLE void reset();
     Q_INVOKABLE void applyAndRestart();
     Q_INVOKABLE void applyProfile(const QString &profileName);
@@ -159,6 +160,7 @@ private:
     TempModel *m_tempModel;
     QStringListModel *m_profileModel;
     QTimer m_alertTimer;
+    QTimer m_regulateTimer;
     double m_highestTemp;
     bool m_temperatureAlarm;
     QString m_alarmSensor;

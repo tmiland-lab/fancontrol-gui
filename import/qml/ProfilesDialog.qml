@@ -55,26 +55,23 @@ Dialog {
                 currentIndex: Fancontrol.Base.currentProfileIndex
                 boundsBehavior: Flickable.StopAtBounds
                 flickableDirection: Flickable.AutoFlickIfNeeded
-                header: Kirigami.BasicListItem {
-                    label: '<b>' + i18n("Profiles") + '</b>'
-                    reserveSpaceForIcon: false
+                header: ItemDelegate {
+                    text: '<b>' + i18n("Profiles") + '</b>'
                     hoverEnabled: false
-                    separatorVisible: false
-                    leftPadding: Kirigami.Units.smallSpacing
+                    enabled: false
+                    padding: Kirigami.Units.smallSpacing
                 }
-                delegate: Kirigami.BasicListItem {
-                    label: {
+                delegate: ItemDelegate {
+                    readonly property string profileName: model.display
+                    text: {
                         if (Fancontrol.Base.currentProfileIndex === index)
-                            return display + ' ' + i18n("(current profile)")
+                            return model.display + ' ' + i18n("(current profile)")
                         else
-                            return display
+                            return model.display
                     }
-                    reserveSpaceForIcon: false
                     hoverEnabled: true
                     highlighted: ListView.isCurrentItem
-                    separatorVisible: false
-
-                    onPressedChanged: if (pressed) profilesListView.currentIndex = index;
+                    onClicked: profilesListView.currentIndex = index
                 }
             }
         }
@@ -95,7 +92,7 @@ Dialog {
             Button {
                 text: i18n("Save to profile")
                 enabled: Fancontrol.Base.currentProfileIndex !== profilesListView.currentIndex && profilesListView.currentIndex >= 0
-                onClicked: Fancontrol.Base.saveProfile(profilesListView.currentItem.label)
+                onClicked: Fancontrol.Base.saveProfile(profilesListView.currentItem.profileName)
             }
             Button {
                 text: i18n("Delete profile")
@@ -117,7 +114,7 @@ Dialog {
                 enabled: profilesListView.currentIndex >= 0
                 Layout.fillWidth: true
                 onClicked: {
-                    var profileName = profilesListView.currentItem ? profilesListView.currentItem.text : "fan_profile";
+                    var profileName = profilesListView.currentItem ? profilesListView.currentItem.profileName : "fan_profile";
                     exportFileDialog.currentFile = Qt.url("file://" + profileName + ".conf");
                     exportFileDialog.open();
                 }

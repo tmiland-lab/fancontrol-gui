@@ -22,6 +22,8 @@
 #include <QFile>
 #include <QTextStream>
 #include <QFileInfo>
+#include <QRegularExpression>
+#include <QLatin1Char>
 
 #include <KAuth/HelperSupport>
 #include <KLocalizedString>
@@ -69,6 +71,21 @@ const QDBusArgument &operator>>(const QDBusArgument &argument, StringStruct &str
 }
 #endif
 
+
+bool Helper::isWritablePath(const QString &filename)
+{
+    if (filename.startsWith(QLatin1String("/etc")))
+        return true;
+
+    // Fans are controlled through sysfs PWM files, which are normally owned
+    // by root. Allow the helper to write only those hwmon entries (pwmN and
+    // pwmN_enable), never arbitrary sysfs files. The app dereferences the
+    // /sys/class/hwmon symlinks, so the actual path points into
+    // /sys/devices/.../hwmon/hwmonN/. Accept any path ending in a hwmonN/pwmN
+    // (or pwmN_enable) component.
+    static const QRegularExpression sysfsPwm(QStringLiteral("^/sys/.*/hwmon[0-9]+/pwm[0-9]+(_enable)?$"));
+    return sysfsPwm.match(filename).hasMatch();
+}
 
 ActionReply Helper::action(const QVariantMap &arguments)
 {
@@ -200,10 +217,10 @@ ActionReply Helper::action(const QVariantMap &arguments)
     {
         const auto filename = arguments[QStringLiteral("filename")].toString();
 
-        if (!filename.startsWith(QStringLiteral("/etc")))
+        if (!isWritablePath(filename))
         {
             reply = ActionReply::HelperErrorReply();
-            reply.setErrorDescription(QStringLiteral("File must be located in /etc"));
+            reply.setErrorDescription(QStringLiteral("File must be located in /etc or /sys/.../hwmon[N]/pwm[N] (pwm files)"));
             return reply;
         }
 

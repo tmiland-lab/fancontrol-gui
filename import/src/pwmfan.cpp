@@ -60,6 +60,9 @@ PwmFan::PwmFan(uint index, Hwmon *parent, bool device) : Fan(index, parent, devi
     m_minStop(255),
     m_average(1),
     m_zeroRpm(0),
+    m_lastPwm(0),
+    m_noProgress(0),
+    m_findStartPwm(0),
     m_testStatus(NotStarted)
 {
     if (!parent)
@@ -154,6 +157,9 @@ void PwmFan::toDefault()
     setMinStart(255);
     setMinStop(255);
     m_zeroRpm = 0;
+    m_lastPwm = 0;
+    m_noProgress = 0;
+    m_findStartPwm = 0;
 
     if (m_testStatus != NotStarted)
     {
@@ -377,6 +383,9 @@ void PwmFan::test()
 
     setPwm(255, true);
 
+    m_lastPwm = 0;
+    m_noProgress = 0;
+    m_findStartPwm = 0;
     m_testStatus = FindingStop1;
     Q_EMIT testStatusChanged();
 
@@ -432,6 +441,27 @@ void PwmFan::continueTest()
                 return;
             }
 
+            // Guard against fans whose pwm is clamped by the hardware/driver:
+            // if the pwm value no longer decreases despite our writes, the fan
+            // will never reach rpm zero. Abort instead of looping forever.
+            if (m_pwm >= m_lastPwm)
+                ++m_noProgress;
+            else
+                m_noProgress = 0;
+            m_lastPwm = m_pwm;
+
+            if (m_noProgress > MAX_ERRORS_FOR_RPM_ZERO)
+            {
+                Q_EMIT error(i18n("Fan never stops."), false);
+                setMinStart(0);
+                setMinStop(0);
+                setMinPwm(0);
+                setPwm(255);
+                m_testStatus = Finished;
+                Q_EMIT testStatusChanged();
+                return;
+            }
+
             setPwm(qMax(0, (int)qMin(m_pwm * 0.95, m_pwm - 5.0)));
             m_zeroRpm = 0;
         }
@@ -445,6 +475,9 @@ void PwmFan::continueTest()
             {
                 m_testStatus = FindingStart;
                 m_zeroRpm = 0;
+                // Ramp from the pwm value at which the fan was last seen
+                // running, not the (possibly quantized) current read-back.
+                m_findStartPwm = qMax(0, m_pwm);
 //                qDebug() << "Start finding start value...";
             }
         }
@@ -453,7 +486,7 @@ void PwmFan::continueTest()
 
     case FindingStart:
         if (rpm() == 0)
-            if (m_pwm >= 255)
+            if (m_findStartPwm >= 255)
             {
                 m_testStatus = Finished;
                 Q_EMIT testStatusChanged();
@@ -465,11 +498,14 @@ void PwmFan::continueTest()
                 break;
             }
             else
-                setPwm(qMin(m_pwm + 2, 255));
+            {
+                m_findStartPwm = qMin(m_findStartPwm + 2, 255);
+                setPwm(m_findStartPwm);
+            }
         else
         {
             m_testStatus = FindingStop2;
-            setMinStart(m_pwm);
+            setMinStart(m_findStartPwm);
 //            qDebug() << "Start finding stop value...";
         }
         QTimer::singleShot(1000, this, &PwmFan::continueTest);

@@ -169,4 +169,127 @@ ColumnLayout {
             }
         }
     }
+
+    RowLayout {
+        Label {
+            text: i18n("Temperature to start curve:")
+            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+            renderType: Text.NativeRendering
+        }
+        SpinBox {
+            id: minTempInput
+
+            Layout.fillWidth: true
+            from: Math.ceil(Fancontrol.Base.minTemp)
+            to: Math.max(from, maxTempInput.value - 1)
+            editable: true
+            value: !!fan ? fan.minTemp : from
+            textFromValue: function(value, locale) { return Number(value).toLocaleString(locale, 'f', 0) + ' ' + i18n("°C") }
+            onValueModified: {
+                if (!!fan) fan.minTemp = value;
+            }
+
+            Connections {
+                target: root
+                function onFanChanged() { if (!!fan) minTempInput.value = Math.max(minTempInput.from, Math.min(fan.minTemp, maxTempInput.value - 1)) }
+            }
+            Connections {
+                target: fan
+                function onMinTempChanged() { minTempInput.value = Math.max(minTempInput.from, Math.min(fan.minTemp, maxTempInput.value - 1)) }
+            }
+        }
+    }
+
+    RowLayout {
+        Label {
+            text: i18n("Temperature to reach maximum:")
+            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+            renderType: Text.NativeRendering
+        }
+        SpinBox {
+            id: maxTempInput
+
+            Layout.fillWidth: true
+            from: minTempInput.value + 1
+            to: Math.max(from, Math.floor(Fancontrol.Base.maxTemp))
+            editable: true
+            value: !!fan ? fan.maxTemp : to
+            textFromValue: function(value, locale) { return Number(value).toLocaleString(locale, 'f', 0) + ' ' + i18n("°C") }
+            onValueModified: {
+                if (!!fan) fan.maxTemp = value;
+            }
+
+            Connections {
+                target: root
+                function onFanChanged() { if (!!fan) maxTempInput.value = Math.max(maxTempInput.from, Math.min(fan.maxTemp, Fancontrol.Base.maxTemp)) }
+            }
+            Connections {
+                target: fan
+                function onMaxTempChanged() { maxTempInput.value = Math.max(maxTempInput.from, Math.min(fan.maxTemp, Fancontrol.Base.maxTemp)) }
+            }
+        }
+    }
+
+    RowLayout {
+        Label {
+            text: i18n("Pwm value at MINTEMP (stop):")
+            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+            renderType: Text.NativeRendering
+        }
+        SpinBox {
+            id: minStopInput
+
+            Layout.fillWidth: true
+            from: 0
+            to: Math.round(fan.maxPwm / 2.55) || 100
+            editable: true
+            value: !!fan ? Math.round(fan.minStop / 2.55) : 0
+            textFromValue: function(value, locale) { return Number(value).toLocaleString(locale, 'f', 1) + locale.percent }
+            onValueModified: {
+                if (!!fan) {
+                    fan.minStop = Math.round(value * 2.55);
+                    if (fan.minPwm !== 0) fan.minPwm = fan.minStop;
+                }
+            }
+
+            Connections {
+                target: root
+                function onFanChanged() { if (!!fan) minStopInput.value = Math.round(fan.minStop / 2.55) }
+            }
+            Connections {
+                target: fan
+                function onMinStopChanged() { minStopInput.value = Math.round(fan.minStop / 2.55) }
+            }
+        }
+    }
+
+    RowLayout {
+        Label {
+            text: i18n("Pwm value at MAXTEMP:")
+            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+            renderType: Text.NativeRendering
+        }
+        SpinBox {
+            id: maxPwmInput
+
+            Layout.fillWidth: true
+            from: Math.round(fan.minStop / 2.55) || 0
+            to: 100
+            editable: true
+            value: !!fan ? Math.round(fan.maxPwm / 2.55) : 100
+            textFromValue: function(value, locale) { return Number(value).toLocaleString(locale, 'f', 1) + locale.percent }
+            onValueModified: {
+                if (!!fan) fan.maxPwm = Math.round(value * 2.55);
+            }
+
+            Connections {
+                target: root
+                function onFanChanged() { if (!!fan) maxPwmInput.value = Math.round(fan.maxPwm / 2.55) }
+            }
+            Connections {
+                target: fan
+                function onMaxPwmChanged() { maxPwmInput.value = Math.round(fan.maxPwm / 2.55) }
+            }
+        }
+    }
 }

@@ -26,16 +26,96 @@
 #include <QApplication>
 #include <QFile>
 #include <QStandardPaths>
+#include <QMetaType>
+#include <QVariantList>
 
 #include <KLocalizedString>
 #include <KAboutData>
+#include <KConfigGroup>
 #include <KDBusService>
 #include <KSharedConfig>
 #include <KWindowConfig>
-#include <kpackage/package.h>
-#include <kpackage/packageloader.h>
 
 #include "systemtrayicon.h"
+
+
+class I18nBridge : public QObject
+{
+    Q_OBJECT
+
+public:
+    Q_INVOKABLE QString i18n(const QString &text, const QVariantList &args) const
+    {
+        const QByteArray textUtf8 = text.toUtf8();
+        KLocalizedString localized = ki18n(textUtf8.constData());
+        return finalize(localized, args);
+    }
+
+    Q_INVOKABLE QString i18nc(const QString &context, const QString &text, const QVariantList &args) const
+    {
+        const QByteArray contextUtf8 = context.toUtf8();
+        const QByteArray textUtf8 = text.toUtf8();
+        KLocalizedString localized = ki18nc(contextUtf8.constData(), textUtf8.constData());
+        return finalize(localized, args);
+    }
+
+    Q_INVOKABLE QString i18np(const QString &singular, const QString &plural, const QVariantList &args) const
+    {
+        if (args.isEmpty())
+            return plural;
+
+        const QByteArray singularUtf8 = singular.toUtf8();
+        const QByteArray pluralUtf8 = plural.toUtf8();
+        KLocalizedString localized = ki18np(singularUtf8.constData(), pluralUtf8.constData());
+        localized = localized.subs(args.first().toInt());
+        QVariantList remaining = args.mid(1);
+        return finalize(localized, remaining);
+    }
+
+    Q_INVOKABLE QString i18ncp(const QString &context, const QString &singular, const QString &plural, const QVariantList &args) const
+    {
+        if (args.isEmpty())
+            return plural;
+
+        const QByteArray contextUtf8 = context.toUtf8();
+        const QByteArray singularUtf8 = singular.toUtf8();
+        const QByteArray pluralUtf8 = plural.toUtf8();
+        KLocalizedString localized = ki18ncp(contextUtf8.constData(), singularUtf8.constData(), pluralUtf8.constData());
+        localized = localized.subs(args.first().toInt());
+        QVariantList remaining = args.mid(1);
+        return finalize(localized, remaining);
+    }
+
+private:
+    static QString finalize(KLocalizedString localized, const QVariantList &args)
+    {
+        for (const auto &arg : args)
+        {
+            switch (arg.typeId())
+            {
+            case QMetaType::Int:
+            case QMetaType::UInt:
+            case QMetaType::LongLong:
+            case QMetaType::ULongLong:
+            case QMetaType::Short:
+            case QMetaType::UShort:
+            case QMetaType::Char:
+            case QMetaType::UChar:
+            case QMetaType::Bool:
+                localized = localized.subs(arg.toInt());
+                break;
+            case QMetaType::Double:
+            case QMetaType::Float:
+                localized = localized.subs(arg.toDouble());
+                break;
+            default:
+                localized = localized.subs(arg.toString());
+                break;
+            }
+        }
+        return localized.toString();
+    }
+};
 
 
 #ifndef CONFIG_NAME
@@ -103,19 +183,41 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<SystemTrayIcon>("Fancontrol.Gui", 1, 0, "SystemTrayIcon");
 
-    KPackage::Package package = KPackage::PackageLoader::self()->loadPackage(QStringLiteral("GenericQml"));
-    const QString packagePath = QStandardPaths::locate(QStandardPaths::GenericDataLocation,
-                                                       QStringLiteral("kpackage/org.kde.fancontrol.gui"),
-                                                       QStandardPaths::LocateDirectory);
-    if (!packagePath.isEmpty())
-        package.setPath(packagePath);
+    QString packagePath = QStandardPaths::locate(QStandardPaths::GenericDataLocation,
+                                                 QStringLiteral("kpackage/genericqml/org.kde.fancontrol.gui"),
+                                                 QStandardPaths::LocateDirectory);
+    if (packagePath.isEmpty())
+        packagePath = QStandardPaths::locate(QStandardPaths::GenericDataLocation,
+                                             QStringLiteral("kpackage/org.kde.fancontrol.gui"),
+                                             QStandardPaths::LocateDirectory);
 
-    QString mainScript = package.metadata().value(QStringLiteral("X-Plasma-MainScript"));
-    if (mainScript.isEmpty())
-        mainScript = QStringLiteral("ui/main.qml");
+    QString mainScript = QStringLiteral("ui/Application.qml");
+    const QString metadataPath = packagePath + QStringLiteral("/metadata.desktop");
+    if (QFile::exists(metadataPath))
+    {
+        const KConfigGroup metadata(KSharedConfig::openConfig(metadataPath, KConfig::SimpleConfig),
+                                    QStringLiteral("Desktop Entry"));
+        mainScript = metadata.readEntry(QStringLiteral("X-Plasma-MainScript"), mainScript);
+    }
 
     QQmlApplicationEngine engine;
-    const QString mainQmlUrl = package.filePath("contents") + QLatin1Char('/') + mainScript;
+    I18nBridge i18nBridge;
+    engine.globalObject().setProperty(QStringLiteral("_i18nBridge"), engine.newQObject(&i18nBridge));
+    engine.evaluate(QStringLiteral(
+        "function i18n(text) {"
+        "    return _i18nBridge.i18n(text, Array.prototype.slice.call(arguments, 1));"
+        "}"
+        "function i18nc(context, text) {"
+        "    return _i18nBridge.i18nc(context, text, Array.prototype.slice.call(arguments, 2));"
+        "}"
+        "function i18np(singular, plural) {"
+        "    return _i18nBridge.i18np(singular, plural, Array.prototype.slice.call(arguments, 2));"
+        "}"
+        "function i18ncp(context, singular, plural) {"
+        "    return _i18nBridge.i18ncp(context, singular, plural, Array.prototype.slice.call(arguments, 3));"
+        "}"));
+
+    const QString mainQmlUrl = packagePath + QStringLiteral("/contents/") + mainScript;
     if (QFile::exists(mainQmlUrl))
         engine.load(QUrl::fromLocalFile(mainQmlUrl));
 
@@ -134,3 +236,5 @@ int main(int argc, char *argv[])
 
     return app.exec();
 }
+
+#include "main.moc"

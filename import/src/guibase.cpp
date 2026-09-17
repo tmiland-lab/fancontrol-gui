@@ -24,6 +24,7 @@
 
 #include "config.h"
 #include "hwmon.h"
+#include "pwmfan.h"
 #include "temp.h"
 
 #include <KLocalizedString>
@@ -59,6 +60,12 @@ GUIBase::GUIBase(QObject *parent) : QObject(parent),
 
     m_alertTimer.setInterval(5000);
     connect(&m_alertTimer, &QTimer::timeout, this, &GUIBase::checkTemperatures);
+
+    // When the fancontrol systemd service is not running, drive the fans
+    // ourselves so changes/presets take effect immediately.
+    m_regulateTimer.setInterval(2000);
+    connect(&m_regulateTimer, &QTimer::timeout, this, &GUIBase::applyFanPwm);
+    m_regulateTimer.start();
 
     m_loader->parseHwmons();
 
@@ -329,10 +336,49 @@ void GUIBase::apply()
     bool configChanged = m_loader->save(configUrl());
 
 #ifndef NO_SYSTEMD
+    applyFanPwm();
     m_com->apply(configChanged);
+#else
+    applyFanPwm();
 #endif
 
     Q_EMIT needsApplyChanged();
+}
+
+void GUIBase::applyFanPwm()
+{
+#ifndef NO_SYSTEMD
+    // When the systemd service is running it regulates the fans itself;
+    // only drive the hardware directly when it isn't controlling them.
+    if (m_com->serviceActive())
+        return;
+#endif
+
+    const auto fans = m_pwmFanModel->fans();
+    for (auto *fan : fans)
+    {
+        if (!fan->hasTemp() || !fan->temp() || fan->testing())
+            continue;
+
+        const int temp = fan->temp()->value();
+        const int minTemp = fan->minTemp();
+        const int maxTemp = fan->maxTemp();
+        const int minPwm = fan->minPwm();
+        const int maxPwm = fan->maxPwm();
+
+        int target;
+        if (temp <= minTemp)
+            target = minPwm;
+        else if (temp >= maxTemp)
+            target = maxPwm;
+        else
+        {
+            const double fraction = double(temp - minTemp) / double(maxTemp - minTemp);
+            target = qRound(minPwm + fraction * (maxPwm - minPwm));
+        }
+
+        fan->setPwm(qBound(0, target, 255));
+    }
 }
 
 void GUIBase::reset()
@@ -422,18 +468,21 @@ void GUIBase::saveProfile(const QString& profileName, bool updateModel)
     if (index < 0)
     {
         index = profileNames.size();
-
-        auto profileNames = Config::instance()->findItem(QStringLiteral("ProfileNames"))->property().toStringList();
-        Config::instance()->findItem(QStringLiteral("ProfileNames"))->setProperty(profileNames << profileName);
+        profileNames.append(profileName);
+        Config::instance()->findItem(QStringLiteral("ProfileNames"))->setProperty(profileNames);
 
         if (updateModel)
             m_profileModel->insertRow(index);
     }
 
     auto profiles = Config::instance()->findItem(QStringLiteral("Profiles"))->property().toStringList();
-    profiles.insert(index, m_loader->config());
+    if (index < profiles.size())
+        profiles[index] = m_loader->config();
+    else
+        profiles.append(m_loader->config());
     Config::instance()->findItem(QStringLiteral("Profiles"))->setProperty(profiles);
 
+    Config::instance()->save();
     Q_EMIT currentProfileChanged();
 
     if (updateModel)
@@ -460,6 +509,7 @@ void GUIBase::deleteProfile(int index, bool updateModel)
     profiles.removeAt(index);
     Config::instance()->findItem(QStringLiteral("Profiles"))->setProperty(profiles);
 
+    Config::instance()->save();
     Q_EMIT currentProfileChanged();
 
     if (updateModel)

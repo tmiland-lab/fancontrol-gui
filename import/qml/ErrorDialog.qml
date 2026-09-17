@@ -43,7 +43,7 @@ Dialog {
 
     Connections {
         target: Fancontrol.Base
-        onCriticalError: {
+        function onCriticalError() {
             text.text = Fancontrol.Base.error;
             dialog.open();
         }
