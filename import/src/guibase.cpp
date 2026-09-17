@@ -140,7 +140,10 @@ QString GUIBase::serviceName() const
 QUrl GUIBase::configUrl() const
 {
     Config::instance()->setCurrentGroup(QStringLiteral("preferences"));
-    return QUrl(Config::instance()->findItem(QStringLiteral("ConfigUrl"))->property().toString());
+    const QUrl url(Config::instance()->findItem(QStringLiteral("ConfigUrl"))->property().toString());
+    if (!url.isEmpty() && !url.isLocalFile())
+        return QUrl::fromLocalFile(url.path());
+    return url;
 }
 
 bool GUIBase::showTray() const
