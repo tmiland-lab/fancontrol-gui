@@ -52,11 +52,9 @@ Item {
 
             TabButton {
                 text: i18n("Fan curve")
-                width: Math.max(implicitWidth, tabBar.width / tabBar.count)
             }
             TabButton {
                 text: i18n("Temperature & PWM")
-                width: Math.max(implicitWidth, tabBar.width / tabBar.count)
             }
         }
 

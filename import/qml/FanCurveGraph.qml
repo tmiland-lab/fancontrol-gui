@@ -100,6 +100,17 @@ Item {
         var maxTempV = Math.round(MoreMath.bound(minTemp, fan.maxTemp, maxTemp));
         var maxPwm = fan.maxPwm;
 
+        // Remember the previous anchor range so interior waypoints can be
+        // reprojected proportionally into the new one. Clamping alone would
+        // collapse every waypoint onto the same temp when a preset narrows
+        // the range (producing a broken, flat then vertical curve).
+        var oldMinT = pointTemp(0);
+        var oldMaxT = pointTemp(curvePoints.count - 1);
+        var oldMinP = pointPwm(0);
+        var oldMaxP = pointPwm(curvePoints.count - 1);
+        var oldTRange = oldMaxT - oldMinT;
+        var oldPRange = oldMaxP - oldMinP;
+
         if (curvePoints.get(0).kind === "stop") {
             setPointTemp(0, stopTemp);
             setPointPwm(0, stopPwm);
@@ -109,13 +120,19 @@ Item {
             setPointTemp(last, maxTempV);
             setPointPwm(last, maxPwm);
         }
-        // keep interior waypoints between the anchors
+
+        var newTRange = maxTempV - stopTemp;
+        var newPRange = maxPwm - stopPwm;
+
         for (var i = 1; i < last; i++) {
-            var t = Math.round(MoreMath.bound(stopTemp, pointTemp(i), maxTempV));
-            var lo = Math.min(stopPwm, maxPwm);
-            var hi = Math.max(stopPwm, maxPwm);
-            setPointTemp(i, t);
-            setPointPwm(i, Math.round(MoreMath.bound(lo, pointPwm(i), hi)));
+            // Normalised position of the waypoint within the old range.
+            var fT = oldTRange !== 0 ? (pointTemp(i) - oldMinT) / oldTRange : i / (last);
+            var fP = oldPRange !== 0 ? (pointPwm(i) - oldMinP) / oldPRange : i / (last);
+            fT = MoreMath.bound(0, fT, 1);
+            fP = MoreMath.bound(0, fP, 1);
+
+            setPointTemp(i, Math.round(stopTemp + newTRange * fT));
+            setPointPwm(i, Math.round(stopPwm + newPRange * fP));
         }
     }
 
@@ -131,13 +148,19 @@ Item {
         var p = Math.round(MoreMath.bound(0, pwm, 255));
 
         if (kind === "stop") {
+            // The stop anchor defines both the "turn off" floor and the
+            // minimum spinning value. Keep minStop <= minStart so the
+            // generated fancontrol config stays valid, and mirror minStop
+            // into minPwm unless the fan is configured to stop completely.
             fan.minTemp = t;
-            fan.minStop = p;
+            fan.minStop = Math.min(p, fan.minStart > 0 ? fan.minStart : p);
             if (fan.minPwm !== 0)
                 fan.minPwm = fan.minStop;
         } else if (kind === "max") {
+            // maxPwm must stay above the stop floor, otherwise the curve
+            // collapses and the fan never reaches full speed.
             fan.maxTemp = t;
-            fan.maxPwm = p;
+            fan.maxPwm = Math.max(p, fan.minStop);
         } else if (kind === "waypoint") {
             setPointTemp(index, t);
             setPointPwm(index, p);
@@ -156,8 +179,7 @@ Item {
     property int waypointCount: 2
 
     onWaypointCountChanged: rebuildDefaultPoints()
-    onFanChanged: {
-        if (fan) {
+    onFanChanged: {        if (fan) {
             rebuildDefaultPoints();
             samples.clear();
         }
@@ -486,78 +508,132 @@ Item {
         }
 
         ColumnLayout {
+            id: infoColumn
+
             Layout.fillHeight: true
             Layout.minimumWidth: Kirigami.Units.gridUnit * 8
-            Layout.preferredWidth: Kirigami.Units.gridUnit * 8
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 9
             // Without a maximum the column greedily claims half the row (its
             // children fillWidth), starving the plot of space.
-            Layout.maximumWidth: Kirigami.Units.gridUnit * 10
+            Layout.maximumWidth: Kirigami.Units.gridUnit * 11
             spacing: Kirigami.Units.smallSpacing
 
-            Kirigami.Heading {
-                level: 4
-                text: !!fan ? fan.name : ""
-                color: Kirigami.Theme.textColor
-                // A Heading does not wrap or elide by default and its implicit
-                // width would otherwise let it claim the whole RowLayout,
-                // collapsing the graph to a sliver. Constrain it and elide.
+            // Live readout card. The fan name lives in the page header, so it
+            // is not duplicated here.
+            Rectangle {
                 Layout.fillWidth: true
-                wrapMode: Text.NoWrap
-                elide: Text.ElideRight
-            }
+                Layout.minimumWidth: 0
+                implicitHeight: stats.implicitHeight + Kirigami.Units.largeSpacing
+                radius: Kirigami.Units.smallSpacing
+                color: Kirigami.Theme.alternateBackgroundColor
+                border.width: 1
+                border.color: Colors.setAlpha(Kirigami.Theme.textColor, 0.12)
 
-            Label {
-                text: i18n("Temps: %1", currentTempText)
-                color: root.coolColor
-                font.bold: true
-                Layout.fillWidth: true
-            }
-            Label {
-                text: i18n("PWM: %1", currentPwmText)
-                color: root.warmColor
-                font.bold: true
-                Layout.fillWidth: true
-            }
-            Label {
-                text: currentRpmText
-                color: Kirigami.Theme.disabledTextColor
-                Layout.fillWidth: true
-            }
+                ColumnLayout {
+                    id: stats
 
-            Item {
-                Layout.fillHeight: true
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-
-                Button {
-                    text: i18n("−")
-                    enabled: root.editable && root.waypointCount > 0
-                    flat: true
-                    onClicked: {
-                        if (root.waypointCount > 0) {
-                            --root.waypointCount;
-                        }
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                        top: parent.top
+                        margins: Kirigami.Units.smallSpacing
                     }
-                }
-                Label {
-                    text: i18n("points")
-                    color: Kirigami.Theme.disabledTextColor
-                    Layout.fillWidth: true
-                    horizontalAlignment: Text.AlignHCenter
-                }
-                Button {
-                    text: i18n("+")
-                    enabled: root.editable && root.waypointCount < 6
-                    flat: true
-                    onClicked: {
-                        if (root.waypointCount < 6) {
-                            ++root.waypointCount;
-                        }
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Label {
+                        text: i18n("Live")
+                        font.bold: true
+                        color: Kirigami.Theme.disabledTextColor
+                        Layout.fillWidth: true
+                    }
+
+                    StatRow {
+                        label: i18n("Temp")
+                        value: root.currentTempText
+                        valueColor: root.coolColor
+                    }
+                    StatRow {
+                        label: i18n("PWM")
+                        value: root.currentPwmText
+                        valueColor: root.warmColor
+                    }
+                    StatRow {
+                        label: i18n("Speed")
+                        value: root.currentRpmText
+                        valueColor: Kirigami.Theme.textColor
                     }
                 }
             }
+
+            Item { Layout.fillHeight: true }
+
+            // Waypoint stepper.
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: stepper.implicitHeight + Kirigami.Units.smallSpacing
+                radius: Kirigami.Units.smallSpacing
+                color: Kirigami.Theme.alternateBackgroundColor
+                border.width: 1
+                border.color: Colors.setAlpha(Kirigami.Theme.textColor, 0.12)
+
+                RowLayout {
+                    id: stepper
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                        verticalCenter: parent.verticalCenter
+                        margins: Kirigami.Units.smallSpacing
+                    }
+                    spacing: 0
+
+                    ToolButton {
+                        text: i18n("−")
+                        enabled: root.editable && root.waypointCount > 0
+                        onClicked: if (root.waypointCount > 0) --root.waypointCount
+                    }
+                    Label {
+                        text: i18np("%1 point", "%1 points", root.waypointCount + 2)
+                        color: Kirigami.Theme.disabledTextColor
+                        Layout.fillWidth: true
+                        horizontalAlignment: Text.AlignHCenter
+                        elide: Text.ElideRight
+                    }
+                    ToolButton {
+                        text: i18n("+")
+                        enabled: root.editable && root.waypointCount < 6
+                        onClicked: if (root.waypointCount < 6) ++root.waypointCount
+                    }
+                }
+            }
+        }
+    }
+
+    // One label/value pair of the live readout.
+    component StatRow: RowLayout {
+        property string label
+        property string value
+        property color valueColor: Kirigami.Theme.textColor
+
+        Layout.fillWidth: true
+        spacing: Kirigami.Units.smallSpacing
+
+        Rectangle {
+            Layout.preferredWidth: Kirigami.Units.smallSpacing
+            Layout.preferredHeight: Kirigami.Units.smallSpacing
+            radius: width / 2
+            color: valueColor
+        }
+        Label {
+            text: label
+            color: Kirigami.Theme.disabledTextColor
+            Layout.fillWidth: true
+            elide: Text.ElideRight
+        }
+        Label {
+            text: value
+            color: valueColor
+            font.bold: true
         }
     }
 }

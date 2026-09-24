@@ -85,13 +85,16 @@ QString Fan::name() const
 
 void Fan::setName(const QString &name)
 {
-    const auto names = KSharedConfig::openConfig(QStringLiteral("fancontrol-gui"))->group(QStringLiteral("names"));
+    const auto config = KSharedConfig::openConfig(QStringLiteral("fancontrol-gui"));
+    const auto names = config->group(QStringLiteral("names"));
     auto localNames = names.group(parent() ? parent()->name() : QStringLiteral(TEST_HWMON_NAME));
 
     if (name != localNames.readEntry(QLatin1String("fan") + QString::number(index()), QString())
         && !name.isEmpty())
     {
         localNames.writeEntry(QLatin1String("fan") + QString::number(index()), name);
+        // Persist immediately so a rename survives an unclean shutdown.
+        config->sync();
         Q_EMIT nameChanged();
     }
 }

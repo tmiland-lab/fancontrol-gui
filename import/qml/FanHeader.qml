@@ -22,26 +22,38 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
 import org.kde.kirigami 2.14 as Kirigami
+import "colors.js" as Colors
 
 
 RowLayout {
+    id: root
+
     property QtObject fan
     property bool editable: true
 
+    spacing: Kirigami.Units.smallSpacing
+
     Loader {
         active: !!fan
-        sourceComponent: editable ? editableNameComponent : nameComponent
-        Layout.alignment: Qt.AlignLeft
+        sourceComponent: root.editable ? editableNameComponent : nameComponent
+        Layout.alignment: Qt.AlignVCenter
         Layout.leftMargin: Kirigami.Units.smallSpacing
+        Layout.maximumWidth: root.width - idLabel.implicitWidth - Kirigami.Units.gridUnit * 3
     }
+
     Item {
         Layout.fillWidth: true
     }
+
     Label {
-        Layout.alignment: Qt.AlignRight
+        id: idLabel
+
+        Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
         Layout.rightMargin: Kirigami.Units.smallSpacing
         text: !!fan ? fan.id : ""
-        horizontalAlignment: Text.AlignRight
+        color: Kirigami.Theme.disabledTextColor
+        font: Kirigami.Theme.smallFont
+        elide: Text.ElideLeft
     }
 
     Component {
@@ -49,37 +61,70 @@ RowLayout {
 
         Label {
             text: !!fan ? fan.name : ""
-            horizontalAlignment: TextEdit.AlignLeft
-            wrapMode: TextEdit.Wrap
             font.bold: true
             font.pointSize: Kirigami.Theme.defaultFont.pointSize + 2
+            elide: Text.ElideRight
         }
     }
+
     Component {
         id: editableNameComponent
 
-        TextEdit {
-            id: nameField
+        RowLayout {
+            spacing: Kirigami.Units.smallSpacing
 
-            text: !!fan ? fan.name : ""
-            color: Kirigami.Theme.textColor
-            horizontalAlignment: TextEdit.AlignLeft
-            wrapMode: TextEdit.Wrap
-            font.bold: true
-            font.pointSize: Kirigami.Theme.defaultFont.pointSize + 2
-            selectByMouse: true
+            TextField {
+                id: nameField
 
-            onTextChanged: if (!!fan && fan.name != text) fan.name = text
+                text: !!fan ? fan.name : ""
+                placeholderText: i18n("Fan name")
+                selectByMouse: true
+                font.bold: true
+                font.pointSize: Kirigami.Theme.defaultFont.pointSize + 2
+                implicitWidth: Math.max(Kirigami.Units.gridUnit * 10,
+                                        contentWidth + leftPadding + rightPadding)
+                leftPadding: Kirigami.Units.smallSpacing
+                rightPadding: Kirigami.Units.smallSpacing
+                // Frameless look that reads as a heading but is clearly an
+                // editable field once hovered/focused.
+                background: Rectangle {
+                    radius: Kirigami.Units.smallSpacing
+                    color: nameField.activeFocus || nameField.hovered
+                           ? Kirigami.Theme.alternateBackgroundColor
+                           : "transparent"
+                    border.width: nameField.activeFocus ? 1 : 0
+                    border.color: Colors.setAlpha(Kirigami.Theme.focusColor, 0.6)
+                }
 
-            Connections {
-                target: !!fan ? fan : null
-                function onNameChanged() { if (fan.name != nameField.text) nameField.text = fan.name }
+                // Commit only when editing finishes (Enter/focus loss) so
+                // partial names are not written on every keystroke.
+                onEditingFinished: {
+                    if (!!fan && text.trim().length > 0 && fan.name !== text.trim())
+                        fan.name = text.trim();
+                    else if (!!fan)
+                        text = fan.name;
+                }
+
+                Connections {
+                    target: !!fan ? fan : null
+                    function onNameChanged() {
+                        if (!nameField.activeFocus && fan.name !== nameField.text)
+                            nameField.text = fan.name;
+                    }
+                }
             }
 
-            MouseArea {
-                anchors.fill: parent
-                cursorShape: Qt.IBeamCursor
-                acceptedButtons: Qt.NoButton
+            ToolButton {
+                icon.name: "document-edit"
+                visible: !nameField.activeFocus
+                opacity: nameField.hovered || hovered ? 1 : 0.45
+                ToolTip.text: i18n("Rename this fan")
+                ToolTip.visible: hovered
+                ToolTip.delay: Kirigami.Units.toolTipDelay
+                onClicked: {
+                    nameField.forceActiveFocus();
+                    nameField.selectAll();
+                }
             }
         }
     }
