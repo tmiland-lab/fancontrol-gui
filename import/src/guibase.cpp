@@ -30,7 +30,10 @@
 #include <KLocalizedString>
 #include <KNotification>
 #include <QDebug>
+#include <QFile>
+#include <QFileInfo>
 #include <QLocale>
+#include <QTextStream>
 
 
 namespace Fancontrol
@@ -465,6 +468,12 @@ void GUIBase::applyProfile(int index)
 
 void GUIBase::saveProfile(const QString& profileName, bool updateModel)
 {
+    if (profileName.trimmed().isEmpty())
+    {
+        handleError(i18n("Profile name must not be empty."));
+        return;
+    }
+
     auto profileNames = Config::instance()->findItem(QStringLiteral("ProfileNames"))->property().toStringList();
     int index = profileNames.indexOf(profileName);
 
@@ -517,6 +526,163 @@ void GUIBase::deleteProfile(int index, bool updateModel)
 
     if (updateModel)
         m_profileModel->removeRow(index);
+}
+
+bool GUIBase::profileExists(const QString &profileName) const
+{
+    return Config::instance()->findItem(QStringLiteral("ProfileNames"))->property().toStringList().contains(profileName);
+}
+
+void GUIBase::renameProfile(int index, const QString &newName)
+{
+    if (newName.trimmed().isEmpty())
+        return;
+
+    auto profileNames = Config::instance()->findItem(QStringLiteral("ProfileNames"))->property().toStringList();
+
+    if (index < 0 || index >= profileNames.size())
+        return;
+
+    if (profileNames.value(index) == newName)
+        return;
+
+    if (profileNames.contains(newName))
+    {
+        handleError(i18n("A profile named '%1' already exists.", newName));
+        return;
+    }
+
+    profileNames[index] = newName;
+    Config::instance()->findItem(QStringLiteral("ProfileNames"))->setProperty(profileNames);
+    Config::instance()->save();
+
+    m_profileModel->setStringList(profileNames);
+    Q_EMIT currentProfileChanged();
+}
+
+void GUIBase::duplicateProfile(int index, const QString &newName)
+{
+    auto profileNames = Config::instance()->findItem(QStringLiteral("ProfileNames"))->property().toStringList();
+    auto profiles = Config::instance()->findItem(QStringLiteral("Profiles"))->property().toStringList();
+
+    if (index < 0 || index >= profileNames.size() || index >= profiles.size())
+        return;
+
+    QString name = newName.trimmed();
+
+    if (name.isEmpty())
+    {
+        // Generate a unique "Copy of X" name.
+        const QString base = i18n("Copy of %1", profileNames.value(index));
+        name = base;
+        int suffix = 2;
+        while (profileNames.contains(name))
+            name = base + QStringLiteral(" (") + QString::number(suffix++) + QLatin1Char(')');
+    }
+    else if (profileNames.contains(name))
+    {
+        handleError(i18n("A profile named '%1' already exists.", name));
+        return;
+    }
+
+    profileNames.append(name);
+    profiles.append(profiles.value(index));
+    Config::instance()->findItem(QStringLiteral("ProfileNames"))->setProperty(profileNames);
+    Config::instance()->findItem(QStringLiteral("Profiles"))->setProperty(profiles);
+    Config::instance()->save();
+
+    m_profileModel->setStringList(profileNames);
+    Q_EMIT currentProfileChanged();
+}
+
+bool GUIBase::importProfile(const QUrl &url, const QString &profileName)
+{
+    if (!url.isLocalFile())
+    {
+        handleError(i18n("\'%1\' is not a local file!", url.toDisplayString()));
+        return false;
+    }
+
+    QFile file(url.toLocalFile());
+
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        handleError(i18n("Unable to open '%1' for reading.", url.toLocalFile()));
+        return false;
+    }
+
+    const QString config = QString::fromUtf8(file.readAll());
+    file.close();
+
+    if (config.trimmed().isEmpty())
+    {
+        handleError(i18n("Refusing to import empty profile '%1'.", url.toLocalFile()));
+        return false;
+    }
+
+    QString name = profileName.trimmed();
+
+    if (name.isEmpty())
+        name = QFileInfo(url.toLocalFile()).completeBaseName();
+
+    if (name.isEmpty())
+        name = i18n("Imported profile");
+
+    auto profileNames = Config::instance()->findItem(QStringLiteral("ProfileNames"))->property().toStringList();
+    auto profiles = Config::instance()->findItem(QStringLiteral("Profiles"))->property().toStringList();
+
+    if (profileNames.contains(name))
+    {
+        // Make the imported name unique instead of clobbering an existing one.
+        const QString base = name;
+        int suffix = 2;
+        while (profileNames.contains(name))
+            name = base + QStringLiteral(" (") + QString::number(suffix++) + QLatin1Char(')');
+    }
+
+    profileNames.append(name);
+    profiles.append(config);
+    Config::instance()->findItem(QStringLiteral("ProfileNames"))->setProperty(profileNames);
+    Config::instance()->findItem(QStringLiteral("Profiles"))->setProperty(profiles);
+    Config::instance()->save();
+
+    m_profileModel->setStringList(profileNames);
+    Q_EMIT currentProfileChanged();
+
+    handleInfo(i18n("Imported profile '%1'.", name));
+    return true;
+}
+
+bool GUIBase::exportProfile(int index, const QUrl &url)
+{
+    if (!url.isLocalFile())
+    {
+        handleError(i18n("\'%1\' is not a local file!", url.toDisplayString()));
+        return false;
+    }
+
+    const auto profiles = Config::instance()->findItem(QStringLiteral("Profiles"))->property().toStringList();
+
+    if (index < 0 || index >= profiles.size())
+    {
+        handleError(i18n("Profile with index %1 not found.", index));
+        return false;
+    }
+
+    QFile file(url.toLocalFile());
+
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
+    {
+        handleError(i18n("Unable to open '%1' for writing.", url.toLocalFile()));
+        return false;
+    }
+
+    QTextStream stream(&file);
+    stream << profiles.value(index);
+    file.close();
+
+    handleInfo(i18n("Exported profile to '%1'.", url.toLocalFile()));
+    return true;
 }
 
 QString GUIBase::currentProfile() const

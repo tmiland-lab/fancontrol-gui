@@ -124,6 +124,11 @@ public:
     Q_INVOKABLE void saveProfile(const QString &profileName, bool updateModel = true);
     Q_INVOKABLE void deleteProfile(const QString &profileName, bool updateModel = true);
     Q_INVOKABLE void deleteProfile(int, bool updateModel = true);
+    Q_INVOKABLE bool profileExists(const QString &profileName) const;
+    Q_INVOKABLE void renameProfile(int index, const QString &newName);
+    Q_INVOKABLE void duplicateProfile(int index, const QString &newName);
+    Q_INVOKABLE bool importProfile(const QUrl &url, const QString &profileName = QString());
+    Q_INVOKABLE bool exportProfile(int index, const QUrl &url);
 
 
 Q_SIGNALS:

@@ -23,10 +23,11 @@ import QtQuick.Layouts 2.15
 import org.kde.kirigami 2.14 as Kirigami
 import Fancontrol.Qml 1.0 as Fancontrol
 
-RowLayout {
+ColumnLayout {
     id: root
 
     property QtObject fan
+    property int margin: Kirigami.Units.smallSpacing
     readonly property bool enabled: !!fan && fan.hasTemp
     readonly property bool running: !!fan && fan.testing
     readonly property int globalMinTemp: Math.ceil(Fancontrol.Base.minTemp)
@@ -34,6 +35,10 @@ RowLayout {
 
     property int pendingProfile: -1
     property int idleTemp: -1
+    // After an autotune the measured values are kept here so the user can
+    // choose which preset to build from them, rather than having one applied
+    // silently.
+    property bool hasFreshMeasurement: false
 
     readonly property var profiles: [
         { name: i18n("Silent"), icon: "weather-clear-night", minPwm: 0,     maxPwm: 0.60, minTempOffset: 10, maxTempOffset: 30, tooltip: i18n("Apply a quiet fan curve") },
@@ -42,57 +47,152 @@ RowLayout {
         { name: i18n("Performance"), icon: "speedometer",    minPwm: -1,    maxPwm: 1.00, minTempOffset: 1,  maxTempOffset: 10, tooltip: i18n("Apply an aggressive fan curve") }
     ]
 
-    Connections {
-        target: fan
+    // Human readable phase label for the running test.
+    readonly property string testPhase: {
+        if (!fan)
+            return "";
+        switch (fan.testStatus) {
+        case Fancontrol.PwmFan.FindingStop1:
+            return i18n("Finding lowest speed…");
+        case Fancontrol.PwmFan.FindingStart:
+            return i18n("Finding start speed…");
+        case Fancontrol.PwmFan.FindingStop2:
+            return i18n("Finding stop speed…");
+        default:
+            return "";
+        }
+    }
 
-        function onTestStatusChanged() {
-            if (!root.fan || root.pendingProfile < 0)
-                return;
+    ColumnLayout {
+        Layout.fillWidth: true
+        spacing: root.margin
 
-            if (root.fan.testStatus === Fancontrol.PwmFan.Finished) {
-                root.applyProfile(root.pendingProfile, root.idleTemp, false);
-                root.save();
-            } else if (root.fan.testStatus === Fancontrol.PwmFan.Error ||
-                       root.fan.testStatus === Fancontrol.PwmFan.Cancelled) {
-                // The test could not be completed (e.g. no permission to set
-                // the PWM). Apply a static fallback curve so the buttons never
-                // hang and a profile is still produced.
-                root.applyProfile(root.pendingProfile, root.idleTemp, true);
-                root.save();
+        // Progress strip while a test runs.
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: Kirigami.Units.smallSpacing
+            visible: root.running
+
+            BusyIndicator {
+                running: root.running
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 1.5
+                Layout.preferredHeight: Kirigami.Units.gridUnit * 1.5
+            }
+            Label {
+                text: root.testPhase
+                Layout.fillWidth: true
+                elide: Text.ElideRight
+            }
+            Button {
+                text: i18n("Abort")
+                icon.name: "process-stop"
+                flat: true
+                onClicked: fan.abortTest()
+            }
+        }
+
+        // Preset row.
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: Kirigami.Units.smallSpacing
+
+            Repeater {
+                model: root.profiles
+
+                delegate: Button {
+                    text: modelData.name
+                    icon.name: modelData.icon
+                    enabled: root.enabled && !root.running
+                    Layout.fillWidth: true
+                    ToolTip.text: modelData.tooltip
+                    ToolTip.visible: hovered
+                    ToolTip.delay: Kirigami.Units.toolTipDelay
+
+                    onClicked: root.selectPreset(index)
+                }
+            }
+
+            Button {
+                text: i18n("Autotune")
+                icon.name: "run-build"
+                enabled: root.enabled && !root.running
+                Layout.minimumWidth: Kirigami.Units.gridUnit * 8
+                ToolTip.text: i18n("Measure the fan's actual start and stop values")
+                ToolTip.visible: hovered
+                ToolTip.delay: Kirigami.Units.toolTipDelay
+
+                onClicked: root.autotune()
+            }
+
+            Button {
+                text: i18n("Save as profile…")
+                icon.name: "document-save-as"
+                enabled: root.enabled && !root.running && !Fancontrol.Base.needsApply
+                Layout.minimumWidth: Kirigami.Units.gridUnit * 10
+                ToolTip.text: i18n("Save the current fan settings as a named profile")
+                ToolTip.visible: hovered
+                ToolTip.delay: Kirigami.Units.toolTipDelay
+
+                onClicked: root.saveAsProfile()
             }
         }
     }
 
-    Repeater {
-        model: root.profiles
+    Connections {
+        target: fan
 
-        delegate: Button {
-            text: modelData.name
-            icon.name: modelData.icon
-            enabled: root.enabled && !root.running
-            Layout.fillWidth: true
-            ToolTip.text: modelData.tooltip
-            ToolTip.visible: hovered
-            ToolTip.delay: Kirigami.Units.toolTipDelay
+        function onTestStatusChanged() {
+            if (!root.fan)
+                return;
 
-            onClicked: root.selectPreset(index)
+            switch (root.fan.testStatus) {
+            case Fancontrol.PwmFan.Finished:
+                // Measurement done: keep the values, but let the user decide
+                // which preset (if any) to build from them.
+                root.hasFreshMeasurement = true;
+                root.pendingProfile = -1;
+                Fancontrol.Base.apply();
+                break;
+            case Fancontrol.PwmFan.Error:
+                // Surface the failure instead of silently writing a fallback.
+                root.pendingProfile = -1;
+                break;
+            case Fancontrol.PwmFan.Cancelled:
+                root.pendingProfile = -1;
+                break;
+            default:
+                break;
+            }
         }
     }
 
-    Button {
-        text: root.running ? i18n("Autotuning…") : i18n("Autotune")
-        icon.name: "run-build"
-        enabled: root.enabled
-        Layout.minimumWidth: Kirigami.Units.gridUnit * 8
-        ToolTip.text: i18n("Measure the fan's actual start and stop values")
-        ToolTip.visible: hovered
-        ToolTip.delay: Kirigami.Units.toolTipDelay
+    // Profile name prompt, shared by presets and "Save as profile".
+    Dialog {
+        id: nameDialog
 
-        onClicked: {
-            if (root.running)
-                fan.abortTest();
-            else
-                root.autotune(root.pendingProfile >= 0 ? root.pendingProfile : 0);
+        title: i18n("Save profile")
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        x: (parent.width - width) / 2
+        y: (parent.height - height) / 2
+
+        onAccepted: {
+            var name = nameField.text.trim();
+            if (name.length > 0)
+                root.persistProfile(name);
+            nameField.text = "";
+        }
+        onRejected: nameField.text = ""
+
+        ColumnLayout {
+            TextField {
+                id: nameField
+                placeholderText: i18n("Profile name")
+            }
+            Label {
+                text: i18n("Current fan settings will be saved under this name.")
+                font: Kirigami.Theme.smallFont
+                color: Kirigami.Theme.disabledTextColor
+            }
         }
     }
 
@@ -100,27 +200,66 @@ RowLayout {
         return Math.max(minimum, Math.min(maximum, value));
     }
 
+    // Apply a preset to the working configuration only. It is NOT persisted
+    // automatically: the header "Apply" button writes it, or the user picks
+    // "Save as profile…" to name it.
     function selectPreset(index) {
         if (!root.enabled || root.running)
             return;
 
-        // Apply the preset curve immediately, using the last measured start
-        // and stop values when available.
         root.idleTemp = !!fan.temp ? fan.temp.value : 40;
         root.pendingProfile = index;
         root.applyProfile(index, root.idleTemp, false);
-        root.save();
+        Fancontrol.Base.apply();
     }
 
-    function autotune(index) {
+    // Measure the fan only. No preset is applied and nothing is saved.
+    function autotune() {
         if (!root.enabled || root.running)
             return;
 
         // Capture idle temperature BEFORE the test: the test spins the fan
         // at full speed and cools the system down, which would skew the baseline.
         root.idleTemp = !!fan.temp ? fan.temp.value : 40;
-        root.pendingProfile = index >= 0 ? index : 0;
+        root.pendingProfile = -1;
+        root.hasFreshMeasurement = false;
         fan.test();
+    }
+
+    function saveAsProfile() {
+        nameField.text = "";
+        nameDialog.open();
+    }
+
+    function persistProfile(name) {
+        if (Fancontrol.Base.profileExists(name)) {
+            overwritePrompt.text = i18n("A profile named '%1' already exists. Overwrite it?", name);
+            overwritePrompt.pendingName = name;
+            overwritePrompt.open();
+            return;
+        }
+
+        Fancontrol.Base.saveProfile(name);
+    }
+
+    Dialog {
+        id: overwritePrompt
+
+        property string text: ""
+        property string pendingName: ""
+
+        title: i18n("Overwrite profile")
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        x: (parent.width - width) / 2
+        y: (parent.height - height) / 2
+
+        onAccepted: Fancontrol.Base.saveProfile(pendingName)
+
+        Label {
+            text: overwritePrompt.text
+            wrapMode: Text.WordWrap
+            width: Kirigami.Units.gridUnit * 20
+        }
     }
 
     function applyProfile(index, idle, fallback) {
@@ -167,17 +306,6 @@ RowLayout {
         fan.minTemp = minTemp;
         fan.maxTemp = maxTemp;
         fan.maxPwm = Math.round(bound(maxPwm, fan.minPwm, 255));
-    }
-
-    function save() {
-        // Persist the generated curve as a named profile so the user can
-        // re-apply it later from the system tray or the Profiles dialog.
-        var profile = root.profiles[root.pendingProfile];
-        if (profile) {
-            Fancontrol.Base.saveProfile(profile.name);
-            Fancontrol.Base.apply();
-        }
-        root.reset();
     }
 
     function reset() {

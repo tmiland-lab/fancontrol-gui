@@ -40,6 +40,9 @@ Dialog {
         Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
+            // Without a minimum the button column (whose buttons don't elide)
+            // can claim the whole row, collapsing the list to a sliver.
+            Layout.minimumWidth: Kirigami.Units.gridUnit * 12
             Kirigami.Theme.colorSet: Kirigami.Theme.View
             color: Kirigami.Theme.backgroundColor
             border.width: 1
@@ -78,26 +81,61 @@ Dialog {
 
         ColumnLayout {
             Layout.fillHeight: true
+            Layout.maximumWidth: Kirigami.Units.gridUnit * 13
 
             Button {
                 text: i18n("Apply profile")
-                enabled: Fancontrol.Base.currentProfileIndex !== profilesListView.currentIndex
+                enabled: profilesListView.currentIndex >= 0 &&
+                         Fancontrol.Base.currentProfileIndex !== profilesListView.currentIndex
                 onClicked: Fancontrol.Base.applyProfile(profilesListView.currentIndex)
             }
             Button {
                 text: i18n("Create new profile")
                 enabled: Fancontrol.Base.currentProfileIndex === -1
-                onClicked: newProfileNameDialog.open()
+                ToolTip.text: i18n("Save the current settings as a new named profile")
+                ToolTip.visible: hovered
+                ToolTip.delay: Kirigami.Units.toolTipDelay
+                onClicked: {
+                    newProfileNameField.text = "";
+                    newProfileNameDialog.title = i18n("New profile's name");
+                    newProfileNameDialog.open();
+                }
             }
             Button {
                 text: i18n("Save to profile")
-                enabled: Fancontrol.Base.currentProfileIndex !== profilesListView.currentIndex && profilesListView.currentIndex >= 0
-                onClicked: Fancontrol.Base.saveProfile(profilesListView.currentItem.profileName)
+                enabled: profilesListView.currentIndex >= 0 &&
+                         Fancontrol.Base.currentProfileIndex !== profilesListView.currentIndex
+                ToolTip.text: i18n("Overwrite the selected profile with the current settings")
+                ToolTip.visible: hovered
+                ToolTip.delay: Kirigami.Units.toolTipDelay
+                onClicked: {
+                    overwriteName = profilesListView.currentItem.profileName;
+                    overwriteDialog.text = i18n("Overwrite profile '%1' with the current settings?", overwriteName);
+                    overwriteDialog.open();
+                }
+            }
+            Button {
+                text: i18n("Rename profile")
+                enabled: profilesListView.currentIndex >= 0
+                onClicked: {
+                    newProfileNameField.text = profilesListView.currentItem.profileName;
+                    newProfileNameDialog.title = i18n("Rename profile");
+                    newProfileNameDialog.open();
+                }
+            }
+            Button {
+                text: i18n("Duplicate profile")
+                enabled: profilesListView.currentIndex >= 0
+                onClicked: Fancontrol.Base.duplicateProfile(profilesListView.currentIndex, "")
             }
             Button {
                 text: i18n("Delete profile")
                 enabled: profilesListView.currentIndex >= 0
-                onClicked: Fancontrol.Base.deleteProfile(profilesListView.currentIndex)
+                onClicked: {
+                    deleteDialog.text = i18n("Delete profile '%1'? This cannot be undone.",
+                                             profilesListView.currentItem.profileName);
+                    deleteDialog.open();
+                }
             }
 
             Item { Layout.fillHeight: true; Layout.preferredHeight: Kirigami.Units.gridUnit * 2 }
@@ -129,6 +167,46 @@ Dialog {
         }
     }
 
+    property string overwriteName: ""
+
+    Dialog {
+        id: overwriteDialog
+
+        property string text: ""
+
+        title: i18n("Overwrite profile")
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        x: (parent.width - width) / 2
+        y: (parent.height - height) / 2
+
+        onAccepted: Fancontrol.Base.saveProfile(overwriteName)
+
+        Label {
+            text: overwriteDialog.text
+            wrapMode: Text.WordWrap
+            width: Kirigami.Units.gridUnit * 20
+        }
+    }
+
+    Dialog {
+        id: deleteDialog
+
+        property string text: ""
+
+        title: i18n("Delete profile")
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        x: (parent.width - width) / 2
+        y: (parent.height - height) / 2
+
+        onAccepted: Fancontrol.Base.deleteProfile(profilesListView.currentIndex)
+
+        Label {
+            text: deleteDialog.text
+            wrapMode: Text.WordWrap
+            width: Kirigami.Units.gridUnit * 20
+        }
+    }
+
     Dialog {
         id: newProfileNameDialog
 
@@ -139,13 +217,29 @@ Dialog {
         y: (parent.height - height) / 2
 
         onAccepted: {
-            Fancontrol.Base.saveProfile(newProfileNameField.text);
+            var name = newProfileNameField.text.trim();
+
+            if (name.length === 0)
+                return;
+
+            if (newProfileNameDialog.title === i18n("Rename profile") &&
+                    profilesListView.currentIndex >= 0) {
+                Fancontrol.Base.renameProfile(profilesListView.currentIndex, name);
+            } else if (Fancontrol.Base.profileExists(name)) {
+                overwriteName = name;
+                overwriteDialog.text = i18n("A profile named '%1' already exists. Overwrite it?", name);
+                overwriteDialog.open();
+            } else {
+                Fancontrol.Base.saveProfile(name);
+            }
+
             newProfileNameField.text = "";
         }
         onRejected: newProfileNameField.text = ""
 
         TextField {
             id: newProfileNameField
+            placeholderText: i18n("Profile name")
         }
     }
 
@@ -156,6 +250,8 @@ Dialog {
         fileMode: FileDialog.SaveFile
         nameFilters: [i18n("Fancontrol config (*.conf)")]
         modality: Qt.NonModal
+
+        onAccepted: Fancontrol.Base.exportProfile(profilesListView.currentIndex, selectedFile)
     }
 
     FileDialog {
@@ -165,5 +261,7 @@ Dialog {
         fileMode: FileDialog.OpenFile
         nameFilters: [i18n("Fancontrol config (*.conf)")]
         modality: Qt.NonModal
+
+        onAccepted: Fancontrol.Base.importProfile(selectedFile)
     }
 }

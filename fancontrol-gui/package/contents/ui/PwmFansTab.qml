@@ -66,6 +66,18 @@ Kirigami.Page {
                     }
                 }
             }
+            Button {
+                icon.name: "document-save-as"
+                text: i18n("Save as…")
+                enabled: Fancontrol.Base.profileModel.rowCount() >= 0
+                ToolTip.text: i18n("Save the current settings as a new profile")
+                ToolTip.visible: hovered
+                ToolTip.delay: Kirigami.Units.toolTipDelay
+                onClicked: {
+                    saveProfileNameField.text = "";
+                    saveProfileDialog.open();
+                }
+            }
         }
 
         Fancontrol.FanHeader {
@@ -156,5 +168,27 @@ Kirigami.Page {
         modal: true
         x: (root.width - width) / 2
         y: (root.height - height) / 2
+    }
+
+    Dialog {
+        id: saveProfileDialog
+
+        title: i18n("Save profile")
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        x: (root.width - width) / 2
+        y: (root.height - height) / 2
+
+        onAccepted: {
+            var name = saveProfileNameField.text.trim();
+            if (name.length > 0)
+                Fancontrol.Base.saveProfile(name);
+            saveProfileNameField.text = "";
+        }
+        onRejected: saveProfileNameField.text = ""
+
+        TextField {
+            id: saveProfileNameField
+            placeholderText: i18n("Profile name")
+        }
     }
 }
