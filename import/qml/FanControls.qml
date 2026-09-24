@@ -21,103 +21,116 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
+import org.kde.kirigami 2.14 as Kirigami
 import Fancontrol.Qml 1.0 as Fancontrol
 
 
-ColumnLayout {
+GridLayout {
     id: root
 
-    property int padding
+    property int padding: Kirigami.Units.smallSpacing
     property QtObject fan
     readonly property QtObject tempModel: Fancontrol.Base.tempModel
 
-    spacing: 2
+    // Every value field shares this width so the column lines up cleanly.
+    readonly property int fieldWidth: Kirigami.Units.gridUnit * 12
 
-    RowLayout {
-        CheckBox {
-            id: hasTempCheckBox
-            text: i18n("Controlled by:")
-            checked: !!fan ? fan.hasTemp : false
-            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-            onCheckedChanged: {
-                if (!!fan) {
-                    fan.hasTemp = checked;
-                    if (checked && !!tempModel.temp(tempBox.currentIndex)) {
-                        fan.temp = tempModel.temp(tempBox.currentIndex);
-                    }
+    columns: 2
+    columnSpacing: Kirigami.Units.largeSpacing
+    rowSpacing: Kirigami.Units.smallSpacing
+    Layout.leftMargin: root.padding
+    Layout.rightMargin: root.padding
+
+    // --- Controller -------------------------------------------------------
+    CheckBox {
+        id: hasTempCheckBox
+        text: i18n("Controlled by:")
+        checked: !!fan ? fan.hasTemp : false
+        Layout.fillWidth: true
+        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+        onCheckedChanged: {
+            if (!!fan) {
+                fan.hasTemp = checked;
+                if (checked && !!tempModel.temp(tempBox.currentIndex)) {
+                    fan.temp = tempModel.temp(tempBox.currentIndex);
                 }
-            }
-
-            Connections {
-                target: root
-                function onFanChanged() { hasTempCheckBox.checked = !!fan ? fan.hasTemp : false }
-            }
-            Connections {
-                target: fan
-                function onHasTempChanged() { hasTempCheckBox.checked = fan.hasTemp }
             }
         }
-        RowLayout {
-            ComboBox {
-                id: tempBox
-                Layout.fillWidth: true
-                model: tempModel
-                currentIndex: !!fan && fan.hasTemp ? tempModel.indexOf(fan.temp) : -1
-                textRole: "display"
-                enabled: hasTempCheckBox.checked
-                onCurrentIndexChanged: {
-                    if (hasTempCheckBox.checked)
-                        fan.temp = tempModel.temp(currentIndex);
-                }
-            }
 
-            Connections {
-                target: root
-                function onFanChanged() { tempBox.currentIndex = !!fan && fan.hasTemp ? tempModel.indexOf(fan.temp) : -1 }
-            }
-            Connections {
-                target: fan
-                function onTempChanged() { tempBox.currentIndex = !!fan && fan.hasTemp ? tempModel.indexOf(fan.temp) : -1 }
-            }
+        Connections {
+            target: root
+            function onFanChanged() { hasTempCheckBox.checked = !!fan ? fan.hasTemp : false }
+        }
+        Connections {
+            target: fan
+            function onHasTempChanged() { hasTempCheckBox.checked = fan.hasTemp }
         }
     }
 
-    RowLayout {
-        Label {
-            text: i18n("Number of cycles to average temperature")
-            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-            renderType: Text.NativeRendering
+    ComboBox {
+        id: tempBox
+
+        Layout.fillWidth: true
+        Layout.preferredWidth: root.fieldWidth * 2
+        model: tempModel
+        currentIndex: !!fan && fan.hasTemp ? tempModel.indexOf(fan.temp) : -1
+        textRole: "display"
+        enabled: hasTempCheckBox.checked
+        onCurrentIndexChanged: {
+            if (hasTempCheckBox.checked)
+                fan.temp = tempModel.temp(currentIndex);
         }
-        SpinBox {
-            id: averageInput
 
-            Layout.fillWidth: true
-            from: 1
-            to: 100
-            editable: true
-            value: !!fan ? fan.average : 1
-            textFromValue: function(value, locale) { return Number(value).toLocaleString(locale, 'f', 1) }
-            onValueModified: {
-                if (!!fan) {
-                    fan.average = value
-                }
-            }
-
-            Connections {
-                target: root
-                function onFanChanged() { if (!!fan) averageInput.value = fan.average }
-            }
-            Connections {
-                target: fan
-                function onAverageChanged() { averageInput.value = fan.average }
-            }
+        Connections {
+            target: root
+            function onFanChanged() { tempBox.currentIndex = !!fan && fan.hasTemp ? tempModel.indexOf(fan.temp) : -1 }
+        }
+        Connections {
+            target: fan
+            function onTempChanged() { tempBox.currentIndex = !!fan && fan.hasTemp ? tempModel.indexOf(fan.temp) : -1 }
         }
     }
 
+    // --- Averaging --------------------------------------------------------
+    Label {
+        text: i18n("Cycles to average temperature")
+        Layout.fillWidth: true
+        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+        elide: Text.ElideRight
+    }
+
+    SpinBox {
+        id: averageInput
+
+        Layout.preferredWidth: root.fieldWidth
+        from: 1
+        to: 100
+        editable: true
+        value: !!fan ? fan.average : 1
+        textFromValue: function(value, locale) { return Number(value).toLocaleString(locale, 'f', 1) }
+        onValueModified: {
+            if (!!fan) {
+                fan.average = value
+            }
+        }
+
+        Connections {
+            target: root
+            function onFanChanged() { if (!!fan) averageInput.value = fan.average }
+        }
+        Connections {
+            target: fan
+            function onAverageChanged() { averageInput.value = fan.average }
+        }
+    }
+
+    // --- Fan-off behavior -------------------------------------------------
     CheckBox {
         id: fanOffCheckBox
 
-        text: i18n("Turn Fan off if temp < MINTEMP")
+        Layout.columnSpan: 2
+        Layout.fillWidth: true
+        text: i18n("Turn fan off when temperature is below the start temperature")
         enabled: hasTempCheckBox.checked
         checked: !!fan ? fan.minPwm === 0 : false
         onCheckedChanged: {
@@ -136,160 +149,163 @@ ColumnLayout {
         }
     }
 
-    RowLayout {
+    // --- Start speed ------------------------------------------------------
+    Label {
+        text: i18n("Start PWM value")
+        Layout.fillWidth: true
+        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
         enabled: fanOffCheckBox.checked && fanOffCheckBox.enabled
+        elide: Text.ElideRight
+    }
 
-        Label {
-            text: i18n("Pwm value for fan to start:")
-            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-            renderType: Text.NativeRendering
+    SpinBox {
+        id: minStartInput
+
+        Layout.preferredWidth: root.fieldWidth
+        enabled: fanOffCheckBox.checked && fanOffCheckBox.enabled
+        from: 0
+        to: 100
+        editable: true
+        value: !!fan ? Math.round(fan.minStart / 2.55) : 0
+        textFromValue: function(value, locale) { return Number(value).toLocaleString(locale, 'f', 1) + locale.percent }
+        onValueModified: {
+            if (!!fan) {
+                fan.minStart = Math.round(value * 2.55)
+            }
         }
-        SpinBox {
-            id: minStartInput
 
-            Layout.fillWidth: true
-            from: 0
-            to: 100
-            editable: true
-            value: !!fan ? Math.round(fan.minStart / 2.55) : 0
-            textFromValue: function(value, locale) { return Number(value).toLocaleString(locale, 'f', 1) + locale.percent }
-            onValueModified: {
-                if (!!fan) {
-                    fan.minStart = Math.round(value * 2.55)
-                }
-            }
-
-            Connections {
-                target: root
-                function onFanChanged() { if (!!fan) minStartInput.value = Math.round(fan.minStart / 2.55) }
-            }
-            Connections {
-                target: fan
-                function onMinStartChanged() { minStartInput.value = Math.round(fan.minStart / 2.55) }
-            }
+        Connections {
+            target: root
+            function onFanChanged() { if (!!fan) minStartInput.value = Math.round(fan.minStart / 2.55) }
+        }
+        Connections {
+            target: fan
+            function onMinStartChanged() { minStartInput.value = Math.round(fan.minStart / 2.55) }
         }
     }
 
-    RowLayout {
-        Label {
-            text: i18n("Temperature to start curve:")
-            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-            renderType: Text.NativeRendering
+    // --- Temperature curve -------------------------------------------------
+    Label {
+        text: i18n("Start temperature")
+        Layout.fillWidth: true
+        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+        elide: Text.ElideRight
+    }
+
+    SpinBox {
+        id: minTempInput
+
+        Layout.preferredWidth: root.fieldWidth
+        from: Math.ceil(Fancontrol.Base.minTemp)
+        to: Math.max(from, maxTempInput.value - 1)
+        editable: true
+        value: !!fan ? fan.minTemp : from
+        textFromValue: function(value, locale) { return Number(value).toLocaleString(locale, 'f', 0) + ' ' + i18n("°C") }
+        onValueModified: {
+            if (!!fan) fan.minTemp = value;
         }
-        SpinBox {
-            id: minTempInput
 
-            Layout.fillWidth: true
-            from: Math.ceil(Fancontrol.Base.minTemp)
-            to: Math.max(from, maxTempInput.value - 1)
-            editable: true
-            value: !!fan ? fan.minTemp : from
-            textFromValue: function(value, locale) { return Number(value).toLocaleString(locale, 'f', 0) + ' ' + i18n("°C") }
-            onValueModified: {
-                if (!!fan) fan.minTemp = value;
-            }
-
-            Connections {
-                target: root
-                function onFanChanged() { if (!!fan) minTempInput.value = Math.max(minTempInput.from, Math.min(fan.minTemp, maxTempInput.value - 1)) }
-            }
-            Connections {
-                target: fan
-                function onMinTempChanged() { minTempInput.value = Math.max(minTempInput.from, Math.min(fan.minTemp, maxTempInput.value - 1)) }
-            }
+        Connections {
+            target: root
+            function onFanChanged() { if (!!fan) minTempInput.value = Math.max(minTempInput.from, Math.min(fan.minTemp, maxTempInput.value - 1)) }
+        }
+        Connections {
+            target: fan
+            function onMinTempChanged() { minTempInput.value = Math.max(minTempInput.from, Math.min(fan.minTemp, maxTempInput.value - 1)) }
         }
     }
 
-    RowLayout {
-        Label {
-            text: i18n("Temperature to reach maximum:")
-            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-            renderType: Text.NativeRendering
+    Label {
+        text: i18n("Maximum temperature")
+        Layout.fillWidth: true
+        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+        elide: Text.ElideRight
+    }
+
+    SpinBox {
+        id: maxTempInput
+
+        Layout.preferredWidth: root.fieldWidth
+        from: minTempInput.value + 1
+        to: Math.max(from, Math.floor(Fancontrol.Base.maxTemp))
+        editable: true
+        value: !!fan ? fan.maxTemp : to
+        textFromValue: function(value, locale) { return Number(value).toLocaleString(locale, 'f', 0) + ' ' + i18n("°C") }
+        onValueModified: {
+            if (!!fan) fan.maxTemp = value;
         }
-        SpinBox {
-            id: maxTempInput
 
-            Layout.fillWidth: true
-            from: minTempInput.value + 1
-            to: Math.max(from, Math.floor(Fancontrol.Base.maxTemp))
-            editable: true
-            value: !!fan ? fan.maxTemp : to
-            textFromValue: function(value, locale) { return Number(value).toLocaleString(locale, 'f', 0) + ' ' + i18n("°C") }
-            onValueModified: {
-                if (!!fan) fan.maxTemp = value;
-            }
-
-            Connections {
-                target: root
-                function onFanChanged() { if (!!fan) maxTempInput.value = Math.max(maxTempInput.from, Math.min(fan.maxTemp, Fancontrol.Base.maxTemp)) }
-            }
-            Connections {
-                target: fan
-                function onMaxTempChanged() { maxTempInput.value = Math.max(maxTempInput.from, Math.min(fan.maxTemp, Fancontrol.Base.maxTemp)) }
-            }
+        Connections {
+            target: root
+            function onFanChanged() { if (!!fan) maxTempInput.value = Math.max(maxTempInput.from, Math.min(fan.maxTemp, Fancontrol.Base.maxTemp)) }
+        }
+        Connections {
+            target: fan
+            function onMaxTempChanged() { maxTempInput.value = Math.max(maxTempInput.from, Math.min(fan.maxTemp, Fancontrol.Base.maxTemp)) }
         }
     }
 
-    RowLayout {
-        Label {
-            text: i18n("Pwm value at MINTEMP (stop):")
-            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-            renderType: Text.NativeRendering
+    // --- PWM levels --------------------------------------------------------
+    Label {
+        text: i18n("PWM at start temperature")
+        Layout.fillWidth: true
+        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+        elide: Text.ElideRight
+    }
+
+    SpinBox {
+        id: minStopInput
+
+        Layout.preferredWidth: root.fieldWidth
+        from: 0
+        to: Math.round(fan.maxPwm / 2.55) || 100
+        editable: true
+        value: !!fan ? Math.round(fan.minStop / 2.55) : 0
+        textFromValue: function(value, locale) { return Number(value).toLocaleString(locale, 'f', 1) + locale.percent }
+        onValueModified: {
+            if (!!fan) {
+                fan.minStop = Math.round(value * 2.55);
+                if (fan.minPwm !== 0) fan.minPwm = fan.minStop;
+            }
         }
-        SpinBox {
-            id: minStopInput
 
-            Layout.fillWidth: true
-            from: 0
-            to: Math.round(fan.maxPwm / 2.55) || 100
-            editable: true
-            value: !!fan ? Math.round(fan.minStop / 2.55) : 0
-            textFromValue: function(value, locale) { return Number(value).toLocaleString(locale, 'f', 1) + locale.percent }
-            onValueModified: {
-                if (!!fan) {
-                    fan.minStop = Math.round(value * 2.55);
-                    if (fan.minPwm !== 0) fan.minPwm = fan.minStop;
-                }
-            }
-
-            Connections {
-                target: root
-                function onFanChanged() { if (!!fan) minStopInput.value = Math.round(fan.minStop / 2.55) }
-            }
-            Connections {
-                target: fan
-                function onMinStopChanged() { minStopInput.value = Math.round(fan.minStop / 2.55) }
-            }
+        Connections {
+            target: root
+            function onFanChanged() { if (!!fan) minStopInput.value = Math.round(fan.minStop / 2.55) }
+        }
+        Connections {
+            target: fan
+            function onMinStopChanged() { minStopInput.value = Math.round(fan.minStop / 2.55) }
         }
     }
 
-    RowLayout {
-        Label {
-            text: i18n("Pwm value at MAXTEMP:")
-            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-            renderType: Text.NativeRendering
+    Label {
+        text: i18n("PWM at maximum temperature")
+        Layout.fillWidth: true
+        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+        elide: Text.ElideRight
+    }
+
+    SpinBox {
+        id: maxPwmInput
+
+        Layout.preferredWidth: root.fieldWidth
+        from: Math.round(fan.minStop / 2.55) || 0
+        to: 100
+        editable: true
+        value: !!fan ? Math.round(fan.maxPwm / 2.55) : 100
+        textFromValue: function(value, locale) { return Number(value).toLocaleString(locale, 'f', 1) + locale.percent }
+        onValueModified: {
+            if (!!fan) fan.maxPwm = Math.round(value * 2.55);
         }
-        SpinBox {
-            id: maxPwmInput
 
-            Layout.fillWidth: true
-            from: Math.round(fan.minStop / 2.55) || 0
-            to: 100
-            editable: true
-            value: !!fan ? Math.round(fan.maxPwm / 2.55) : 100
-            textFromValue: function(value, locale) { return Number(value).toLocaleString(locale, 'f', 1) + locale.percent }
-            onValueModified: {
-                if (!!fan) fan.maxPwm = Math.round(value * 2.55);
-            }
-
-            Connections {
-                target: root
-                function onFanChanged() { if (!!fan) maxPwmInput.value = Math.round(fan.maxPwm / 2.55) }
-            }
-            Connections {
-                target: fan
-                function onMaxPwmChanged() { maxPwmInput.value = Math.round(fan.maxPwm / 2.55) }
-            }
+        Connections {
+            target: root
+            function onFanChanged() { if (!!fan) maxPwmInput.value = Math.round(fan.maxPwm / 2.55) }
+        }
+        Connections {
+            target: fan
+            function onMaxPwmChanged() { maxPwmInput.value = Math.round(fan.maxPwm / 2.55) }
         }
     }
 }
