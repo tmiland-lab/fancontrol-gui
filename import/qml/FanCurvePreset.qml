@@ -152,9 +152,13 @@ RowLayout {
         fan.minStart = minStart;
         fan.minStop = minStop;
 
-        // Temperature thresholds relative to the measured idle temperature.
-        var minTemp = bound(idle + profile.minTempOffset, root.globalMinTemp, root.globalMaxTemp - 1);
-        var maxTemp = bound(idle + profile.maxTempOffset, minTemp + 1, root.globalMaxTemp);
+        // Temperature thresholds relative to a clamped idle baseline. The raw
+        // reading at click time may be inflated (warm machine, right after
+        // load), so clamp it and hard-cap the curve so the fan always engages
+        // at a safe temperature.
+        var baseline = bound(idle, 30, Math.min(root.globalMaxTemp - 20, 45));
+        var minTemp = bound(baseline + profile.minTempOffset, root.globalMinTemp, Math.min(root.globalMaxTemp - 1, 55));
+        var maxTemp = bound(baseline + profile.maxTempOffset, minTemp + 1, Math.min(root.globalMaxTemp, 85));
 
         // Amplitude, relative to the measured start value.
         var ampl = Math.max(0, 255 - minStop);

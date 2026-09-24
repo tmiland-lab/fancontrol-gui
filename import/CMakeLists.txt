@@ -23,6 +23,8 @@ set(QML_FILES qml/qmldir
               qml/TemperatureOverview.qml
               qml/PwmHistory.qml
               qml/FanCurvePreset.qml
+              qml/FanCurveGraph.qml
+              qml/FanCurveHandle.qml
               qml/colors.js
               qml/math.js)
 

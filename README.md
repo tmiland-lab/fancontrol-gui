@@ -21,8 +21,8 @@ ability to run the helper with root privileges.
 
 * **Sensor overview** — live temperature chart (`TemperatureOverview`) and
   per-sensor values on the Sensors tab.
-* **Fan control curves** — build PWM fan curves point by pointholidays on the
-  Fans tabchers. Choose presets and pick a profile on the Profiles dialog.
+* **Fan control curves** — build PWM fan curves point by point on the
+  Fans tab. Choose presets and pick a profile on the Profiles dialog.
 * **Temperature alarm** — enable an alert threshold; the app shows an inline
   alarm banner and raises a desktop notification (`KNotification`) when a
   sensor exceeds the threshold, listing the offending sensor and the current

@@ -12,4 +12,6 @@ TemperatureTimeline 1.0 TemperatureTimeline.qml
 TemperatureOverview 1.0 TemperatureOverview.qml
 PwmHistory 1.0 PwmHistory.qml
 FanCurvePreset 1.0 FanCurvePreset.qml
+FanCurveGraph 1.0 FanCurveGraph.qml
+FanCurveHandle 1.0 FanCurveHandle.qml
 
