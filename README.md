@@ -50,54 +50,33 @@ ability to run the helper with root privileges.
 
 ## Screenshots
 
-Screenshots adapt to GitHub's light/dark theme.
+Each screenshot shows dark mode on the left and light mode on the right.
 
 ### Sensors
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/sensors-dark.png">
-  <img alt="Sensors tab: live temperature overview and per-sensor values" src="docs/screenshots/sensors-light.png">
-</picture>
+![Sensors tab: live temperature overview and per-sensor values](docs/screenshots/sensors-split.png)
 
 ### Fans — fan curve
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/fans-curve-dark.png">
-  <img alt="Fans tab: editable PWM fan curve with presets and autotune" src="docs/screenshots/fans-curve-light.png">
-</picture>
+![Fans tab: editable PWM fan curve with presets and autotune](docs/screenshots/fans-curve-split.png)
 
 ### Fans — temperature & PWM
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/fans-temperature-pwm-dark.png">
-  <img alt="Fans tab: temperature timeline and PWM history" src="docs/screenshots/fans-temperature-pwm-light.png">
-</picture>
+![Fans tab: temperature timeline and PWM history](docs/screenshots/fans-temperature-pwm-split.png)
 
 ### Configfile — table
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/configfile-table-dark.png">
-  <img alt="Configfile tab: structured per-fan table" src="docs/screenshots/configfile-table-light.png">
-</picture>
+![Configfile tab: structured per-fan table](docs/screenshots/configfile-table-split.png)
 
 ### Configfile — raw and changes
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/configfile-raw-dark.png">
-  <img alt="Configfile tab: raw configuration text" src="docs/screenshots/configfile-raw-light.png">
-</picture>
+![Configfile tab: raw configuration text](docs/screenshots/configfile-raw-split.png)
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/configfile-changes-dark.png">
-  <img alt="Configfile tab: pending changes diff" src="docs/screenshots/configfile-changes-light.png">
-</picture>
+![Configfile tab: pending changes diff](docs/screenshots/configfile-changes-split.png)
 
 ### Settings
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/settings-dark.png">
-  <img alt="Settings tab" src="docs/screenshots/settings-light.png">
-</picture>
+![Settings tab](docs/screenshots/settings-split.png)
 
 ## Status
 
