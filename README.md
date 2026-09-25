@@ -110,6 +110,21 @@ Screenshots adapt to GitHub's light/dark theme.
   editable fan names, live system dark/light following, and a themed
   application icon.
 
+## Tested on
+
+The current Qt6/KF6 build is developed and verified on:
+
+* **OS:** Debian GNU/Linux 13 (trixie), kernel 6.18
+* **Toolkit:** Qt 6.8.2 and KDE Frameworks 6.13
+* **Desktop:** GNOME (X11 and Wayland) — light/dark following was verified with
+  both the GTK `color-scheme` setting and the Plasma colour scheme
+* **Hardware:** AMD Radeon RX 6900 XT fan (`amdgpu`) and a Nuvoton NCT6687D
+  controller (`nct6687`)
+
+Distribution packaging known to work is listed under
+[Build requirements](#build-requirements). Continuous integration builds the
+project and runs the unit tests on every push.
+
 ## Build requirements
 
 * Qt6: Base/Core, Widgets, Gui, QML, Quick, QuickControls2

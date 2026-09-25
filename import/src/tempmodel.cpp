@@ -25,7 +25,9 @@
 #include "temp.h"
 
 
-#define UNIT_SUFFIX QLatin1String("°C")
+// QStringLiteral, not QLatin1String: the source is UTF-8, so the degree sign
+// must not be treated as two Latin-1 bytes ("Â°").
+#define UNIT_SUFFIX QStringLiteral("°C")
 
 
 namespace Fancontrol
