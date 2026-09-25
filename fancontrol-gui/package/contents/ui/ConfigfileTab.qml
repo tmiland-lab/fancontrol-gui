@@ -69,37 +69,7 @@ Kirigami.ScrollablePage {
                 text: !!loader ? loader.configPath : ""
                 color: Kirigami.Theme.disabledTextColor
                 elide: Text.ElideLeft
-                Layout.maximumWidth: root.width / 3
-            }
-
-            ToolButton {
-                icon.name: "edit-copy"
-                enabled: !!loader
-                ToolTip.text: i18n("Copy the configuration to the clipboard")
-                ToolTip.visible: hovered
-                onClicked: {
-                    clipboard.text = loader.config;
-                    clipboard.selectAll();
-                    clipboard.copy();
-                }
-            }
-            ToolButton {
-                icon.name: "view-refresh"
-                enabled: !!loader
-                ToolTip.text: i18n("Reload the configuration from disk")
-                ToolTip.visible: hovered
-                onClicked: loader.load()
-            }
-            ToolButton {
-                icon.name: "document-open-remote"
-                enabled: !!loader
-                ToolTip.text: i18n("Import a configuration from a URL")
-                ToolTip.visible: hovered
-                onClicked: {
-                    importUrlField.text = "";
-                    importError.text = "";
-                    importDialog.open();
-                }
+                Layout.maximumWidth: root.width / 2
             }
         }
 
@@ -118,6 +88,48 @@ Kirigami.ScrollablePage {
             }
         }
     }
+
+    actions: [
+        Kirigami.Action {
+            text: i18n("Copy")
+            icon.name: "edit-copy"
+            enabled: !!loader
+            onTriggered: {
+                clipboard.text = loader.config;
+                clipboard.selectAll();
+                clipboard.copy();
+            }
+        },
+        Kirigami.Action {
+            text: i18n("Import")
+            icon.name: "document-open-remote"
+            enabled: !!loader
+            onTriggered: {
+                pasteArea.text = "";
+                importUrlField.text = "";
+                importError.text = "";
+                importDialog.open();
+            }
+        },
+        Kirigami.Action {
+            text: i18n("Reload")
+            icon.name: "view-refresh"
+            enabled: !!loader
+            onTriggered: loader.load()
+        },
+        Kirigami.Action {
+            text: i18n("Apply")
+            icon.name: "dialog-ok-apply"
+            enabled: Fancontrol.Base.needsApply
+            onTriggered: Fancontrol.Base.apply()
+        },
+        Kirigami.Action {
+            text: i18n("Reset")
+            icon.name: "edit-undo"
+            enabled: Fancontrol.Base.needsApply
+            onTriggered: Fancontrol.Base.reset()
+        }
+    ]
 
     // Hidden helper for the "copy" action.
     TextEdit {
@@ -389,27 +401,62 @@ Kirigami.ScrollablePage {
         }
     }
 
-    // --- Import from URL --------------------------------------------------
+    // --- Import (paste or URL) --------------------------------------------
     Dialog {
         id: importDialog
 
-        title: i18n("Import configuration from URL")
+        title: i18n("Import configuration")
         standardButtons: Dialog.Ok | Dialog.Cancel
         anchors.centerIn: parent
-        implicitWidth: Kirigami.Units.gridUnit * 24
+        implicitWidth: Kirigami.Units.gridUnit * 30
 
         onAccepted: {
-            if (importUrlField.text.trim().length > 0)
-                fetchFromUrl(importUrlField.text.trim());
+            var text = pasteArea.text.trim();
+            if (text.length === 0)
+                return;
+            if (loader.importConfig(text))
+                modeBar.currentIndex = 2;
+            else
+                importError.text = i18n("The pasted text is not a valid configuration.");
         }
 
         ColumnLayout {
-            TextField {
-                id: importUrlField
+            Label {
                 Layout.fillWidth: true
-                placeholderText: i18n("https://example.com/fancontrol.conf")
-                inputMethodHints: Qt.ImhUrlCharactersOnly
+                wrapMode: Text.WordWrap
+                text: i18n("Paste a configuration below, or download one from a URL.")
             }
+
+            ScrollView {
+                Layout.fillWidth: true
+                Layout.preferredHeight: Kirigami.Units.gridUnit * 12
+
+                TextArea {
+                    id: pasteArea
+                    placeholderText: "INTERVAL=10\nFCTEMPS=..."
+                    wrapMode: TextArea.Wrap
+                    selectByMouse: true
+                    font.family: "monospace"
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+
+                TextField {
+                    id: importUrlField
+                    Layout.fillWidth: true
+                    placeholderText: i18n("https://example.com/fancontrol.conf")
+                    inputMethodHints: Qt.ImhUrlCharactersOnly
+                    onAccepted: if (text.trim().length > 0) fetchFromUrl(text.trim())
+                }
+                Button {
+                    text: i18n("Download")
+                    icon.name: "download"
+                    onClicked: if (importUrlField.text.trim().length > 0) fetchFromUrl(importUrlField.text.trim())
+                }
+            }
+
             Label {
                 id: importError
                 Layout.fillWidth: true
@@ -417,10 +464,11 @@ Kirigami.ScrollablePage {
                 color: Kirigami.Theme.negativeTextColor
                 visible: text.length > 0
             }
+
             Label {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
-                text: i18n("The downloaded configuration is loaded but not written to disk until you Apply.")
+                text: i18n("The imported configuration is loaded but not written to disk until you Apply.")
                 font: Kirigami.Theme.smallFont
                 color: Kirigami.Theme.disabledTextColor
             }
@@ -433,12 +481,8 @@ Kirigami.ScrollablePage {
             if (xhr.readyState !== XMLHttpRequest.DONE)
                 return;
             if (xhr.status === 200 && xhr.responseText.length > 0) {
-                if (loader.importConfig(xhr.responseText)) {
-                    importDialog.close();
-                    modeBar.currentIndex = 2;
-                } else {
-                    importError.text = i18n("The downloaded file is not a valid configuration.");
-                }
+                pasteArea.text = xhr.responseText;
+                importError.text = "";
             } else {
                 importError.text = i18n("Download failed (HTTP %1).", xhr.status);
             }
