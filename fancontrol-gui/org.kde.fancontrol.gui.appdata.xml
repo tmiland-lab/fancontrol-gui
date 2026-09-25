@@ -29,4 +29,17 @@
     <provides>
         <binary>fancontrol_gui</binary>
     </provides>
+    <releases>
+        <release version="1.0.0" date="2026-09-25">
+            <description>
+                <p>
+                    Qt6/KF6 release: tabbed Fans layout with an editable fan
+                    curve and presets, an autotune rework with live feedback,
+                    editable fan names, full profile management, a structured
+                    Configfile view with validation and diffing, live system
+                    light/dark following, and installable DEB/RPM packages.
+                </p>
+            </description>
+        </release>
+    </releases>
 </component>
