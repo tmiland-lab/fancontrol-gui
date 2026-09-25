@@ -1,0 +1,76 @@
+name: Package
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    container: debian:trixie-slim
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      LANG: C.UTF-8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential cmake gettext extra-cmake-modules \
+            qt6-base-dev qt6-declarative-dev qt6-svg-dev \
+            qml6-module-org-kde-kirigami \
+            qml6-module-qtquick-controls qml6-module-qtquick-layouts qml6-module-qtquick-dialogs \
+            libkf6config-dev libkf6auth-dev libkf6package-dev \
+            libkf6coreaddons-dev libkf6dbusaddons-dev libkf6i18n-dev libkf6notifications-dev \
+            libplasma-dev libkf6kcmutils-dev libkf6configwidgets-dev libkf6windowsystem-dev \
+            libkf6statusnotifieritem-dev \
+            appstream \
+            qml6-module-org-kde-kcmutils \
+            dpkg-dev fakeroot rpm
+
+      - name: Configure
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCMAKE_INSTALL_PREFIX=/usr \
+            -DBUILD_KCM=ON \
+            -DBUILD_PLASMOID=ON \
+            -DBUILD_TESTING=ON \
+            -DNO_SYSTEMD=OFF
+
+      - name: Build
+        run: cmake --build build -j"$(nproc)"
+
+      - name: Run tests
+        run: QT_QPA_PLATFORM=offscreen ctest --test-dir build --output-on-failure
+
+      - name: Build packages
+        run: |
+          cd build
+          cpack -G DEB
+          cpack -G RPM
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: fancontrol-gui-packages
+          path: |
+            build/*.deb
+            build/*.rpm
+          if-no-files-found: error
+
+      - name: Attach packages to the release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/*.deb
+            build/*.rpm
+          generate_release_notes: true

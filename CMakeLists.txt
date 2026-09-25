@@ -107,5 +107,36 @@ if(INSTALL_POLKIT)
     add_subdirectory(polkit)
 endif()
 
+#packaging
+set(CPACK_PACKAGE_NAME "fancontrol-gui")
+set(CPACK_PACKAGE_VENDOR "tmiland")
+set(CPACK_PACKAGE_CONTACT "Tommy Miland <kontakt@tmiland.com>")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "GUI for the fancontrol (lm-sensors) fan-control daemon")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/Maldela/fancontrol-gui")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+if(EXISTS "${CMAKE_SOURCE_DIR}/LICENSE")
+    set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+endif()
+
+set(CPACK_GENERATOR "DEB")
+find_program(RPMBUILD_EXECUTABLE rpmbuild)
+if(RPMBUILD_EXECUTABLE)
+    list(APPEND CPACK_GENERATOR "RPM")
+endif()
+
+# QML modules are loaded at runtime, so dpkg-shlibdeps cannot detect them.
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_CONTACT}")
+set(CPACK_DEBIAN_PACKAGE_SECTION "utils")
+set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "${CPACK_PACKAGE_HOMEPAGE_URL}")
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "qml6-module-org-kde-kirigami, qml6-module-qtquick-controls, qml6-module-qtquick-layouts, qml6-module-qtquick-dialogs, qml6-module-qtquick-window, qml6-module-qtquick, qml6-module-qtqml-workerscript")
+set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+
+set(CPACK_RPM_PACKAGE_LICENSE "LGPL-2.1-or-later")
+set(CPACK_RPM_PACKAGE_GROUP "Applications/System")
+
+include(CPack)
+
 #summary
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
