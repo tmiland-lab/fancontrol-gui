@@ -176,8 +176,7 @@ Dialog {
 
         title: i18n("Overwrite profile")
         standardButtons: Dialog.Ok | Dialog.Cancel
-        x: (parent.width - width) / 2
-        y: (parent.height - height) / 2
+        anchors.centerIn: parent
 
         onAccepted: Fancontrol.Base.saveProfile(overwriteName)
 
@@ -195,8 +194,7 @@ Dialog {
 
         title: i18n("Delete profile")
         standardButtons: Dialog.Ok | Dialog.Cancel
-        x: (parent.width - width) / 2
-        y: (parent.height - height) / 2
+        anchors.centerIn: parent
 
         onAccepted: Fancontrol.Base.deleteProfile(profilesListView.currentIndex)
 
@@ -213,8 +211,7 @@ Dialog {
         title: i18n("New profile's name")
         standardButtons: Dialog.Ok | Dialog.Cancel
         visible: false
-        x: (parent.width - width) / 2
-        y: (parent.height - height) / 2
+        anchors.centerIn: parent
 
         onAccepted: {
             var name = newProfileNameField.text.trim();

@@ -193,7 +193,7 @@ Kirigami.FormLayout {
         visible: !!systemdCom
         Kirigami.FormData.label: i18n("Name of the fancontrol systemd service:")
         Layout.fillWidth: true
-        color: !!systemdCom && systemdCom.serviceExists ? "green" : "red"
+        color: !!systemdCom && systemdCom.serviceExists ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.negativeTextColor
         text: Fancontrol.Base.serviceName
         onTextChanged: Fancontrol.Base.serviceName = text
 

@@ -29,6 +29,20 @@ import Fancontrol.Qml 1.0 as Fancontrol
 Kirigami.ApplicationWindow {
     id: window
 
+    // Mirror the system dark/light preference (detected in C++ and re-checked
+    // at runtime) onto the window palette, so palette-driven QML controls
+    // follow the scheme even when the platform theme does not.
+    readonly property bool darkMode: !!_theme && _theme.dark
+    palette.window: darkMode ? "#232629" : "#faf9f8"
+    palette.windowText: darkMode ? "#eff0f1" : "#000000"
+    palette.base: darkMode ? "#232629" : "#ffffff"
+    palette.alternateBase: darkMode ? "#31363b" : "#eff0f1"
+    palette.text: darkMode ? "#eff0f1" : "#000000"
+    palette.button: darkMode ? "#31363b" : "#eff0f1"
+    palette.buttonText: darkMode ? "#eff0f1" : "#000000"
+    palette.toolTipBase: darkMode ? "#31363b" : "#ffffdc"
+    palette.toolTipText: darkMode ? "#eff0f1" : "#000000"
+
     property string leftPage
     readonly property QtObject pwmFanModel: Fancontrol.Base.pwmFanModel
     property QtObject fan: pwmFanModel.length > 0 ? pwmFanModel.fan(0) : null
@@ -200,8 +214,7 @@ Kirigami.ApplicationWindow {
         id: errorDialog
 
         visible: false
-        x: (parent.width - width) / 2
-        y: (parent.height - height) / 2
+        anchors.centerIn: parent
     }
 
     Dialog {
@@ -213,8 +226,10 @@ Kirigami.ApplicationWindow {
         modal: true
         title: i18n("Unsaved changes")
         standardButtons: Dialog.Cancel | Dialog.Discard | Dialog.Apply
-        x: (window.width - width) / 2
-        y: (window.height - height) / 2
+        anchors.centerIn: parent
+        // Explicit width avoids a QtQuick.Controls implicitWidth binding loop
+        // between the dialog and its standard button box.
+        implicitWidth: Kirigami.Units.gridUnit * 22
 
         onRejected: close()
         onDiscarded: {
@@ -229,9 +244,9 @@ Kirigami.ApplicationWindow {
             window.close();
         }
 
-        Label {
-            anchors.centerIn: parent
+        contentItem: Label {
             text: i18n("There are unsaved changes.\nDo you want to apply these changes?")
+            wrapMode: Text.WordWrap
         }
     }
 }

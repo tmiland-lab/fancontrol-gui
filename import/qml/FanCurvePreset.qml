@@ -172,8 +172,7 @@ ColumnLayout {
 
         title: i18n("Save profile")
         standardButtons: Dialog.Ok | Dialog.Cancel
-        x: (parent.width - width) / 2
-        y: (parent.height - height) / 2
+        anchors.centerIn: parent
 
         onAccepted: {
             var name = nameField.text.trim();
@@ -250,8 +249,7 @@ ColumnLayout {
 
         title: i18n("Overwrite profile")
         standardButtons: Dialog.Ok | Dialog.Cancel
-        x: (parent.width - width) / 2
-        y: (parent.height - height) / 2
+        anchors.centerIn: parent
 
         onAccepted: Fancontrol.Base.saveProfile(pendingName)
 

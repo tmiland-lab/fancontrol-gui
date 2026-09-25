@@ -25,7 +25,14 @@
 #include <QWindow>
 #include <QApplication>
 #include <QFile>
+#include <QPalette>
+#include <QProcess>
+#include <QQuickStyle>
+#include <QQuickWindow>
 #include <QStandardPaths>
+#include <QStyle>
+#include <QStyleHints>
+#include <QTimer>
 #include <QMetaType>
 #include <QVariantList>
 
@@ -130,6 +137,138 @@ Q_LOGGING_CATEGORY(FANCONTROL, "fancontrol-gui")
 static QWindow *s_window = nullptr;
 
 
+static bool isKdeSession()
+{
+    const QByteArray desktop = qgetenv("XDG_CURRENT_DESKTOP").toUpper();
+    return desktop.contains("KDE") || desktop.contains("PLASMA");
+}
+
+// Determine whether the system is currently using a dark colour scheme.
+//
+// On Plasma the Qt platform theme reports this accurately, so the style hint
+// is trusted. On GNOME (and other GTK desktops) Qt often reports "Light"
+// regardless of the user's preference, which lives in gsettings, so that is
+// consulted instead. FANCONTROL_COLOR_SCHEME=dark|light always wins.
+static Qt::ColorScheme detectColorScheme()
+{
+    const QByteArray override = qgetenv("FANCONTROL_COLOR_SCHEME").trimmed().toLower();
+    if (override == "dark")
+        return Qt::ColorScheme::Dark;
+    if (override == "light")
+        return Qt::ColorScheme::Light;
+
+    const Qt::ColorScheme hint = QGuiApplication::styleHints()->colorScheme();
+
+    if (isKdeSession())
+        return hint;
+
+    QProcess gsettings;
+    gsettings.start(QStringLiteral("gsettings"),
+                    {QStringLiteral("get"),
+                     QStringLiteral("org.gnome.desktop.interface"),
+                     QStringLiteral("color-scheme")});
+    if (gsettings.waitForFinished(500))
+    {
+        const QString out = QString::fromUtf8(gsettings.readAllStandardOutput());
+        if (out.contains(QStringLiteral("prefer-dark"), Qt::CaseInsensitive))
+            return Qt::ColorScheme::Dark;
+        if (out.contains(QStringLiteral("prefer-light"), Qt::CaseInsensitive))
+            return Qt::ColorScheme::Light;
+    }
+
+    return hint;
+}
+
+static QPalette s_lightPalette;
+
+static QPalette darkPalette()
+{
+    // Breeze Dark inspired palette. Needed because palette-driven QML styles
+    // (e.g. Fusion on GNOME) read the application palette, not the KDE one.
+    const QColor window(35, 38, 41);
+    const QColor alternate(49, 54, 59);
+    const QColor text(239, 240, 241);
+    const QColor disabled(127, 140, 141);
+    const QColor highlight(61, 174, 233);
+
+    QPalette pal = s_lightPalette;
+    pal.setColor(QPalette::Window, window);
+    pal.setColor(QPalette::WindowText, text);
+    pal.setColor(QPalette::Base, window);
+    pal.setColor(QPalette::AlternateBase, alternate);
+    pal.setColor(QPalette::ToolTipBase, alternate);
+    pal.setColor(QPalette::ToolTipText, text);
+    pal.setColor(QPalette::Text, text);
+    pal.setColor(QPalette::PlaceholderText, disabled);
+    pal.setColor(QPalette::Button, alternate);
+    pal.setColor(QPalette::ButtonText, text);
+    pal.setColor(QPalette::BrightText, Qt::red);
+    pal.setColor(QPalette::Link, highlight);
+    pal.setColor(QPalette::Highlight, highlight);
+    pal.setColor(QPalette::HighlightedText, Qt::black);
+
+    pal.setColor(QPalette::Disabled, QPalette::Text, disabled);
+    pal.setColor(QPalette::Disabled, QPalette::WindowText, disabled);
+    pal.setColor(QPalette::Disabled, QPalette::ButtonText, disabled);
+
+    return pal;
+}
+
+static void applyPalette(QApplication &app, bool dark)
+{
+    const QPalette pal = dark ? darkPalette() : s_lightPalette;
+    app.setPalette(pal);
+}
+
+// Watches the system colour scheme and re-applies it while the app is running,
+// so toggling dark/light in the desktop settings updates the window body and
+// not just the compositor-drawn title bar.
+class ThemeWatcher : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(bool dark READ dark NOTIFY darkChanged)
+
+public:
+    explicit ThemeWatcher(QObject *parent = nullptr) : QObject(parent)
+    {
+        m_dark = detectColorScheme() == Qt::ColorScheme::Dark;
+        applyCurrent();
+        connect(&m_timer, &QTimer::timeout, this, &ThemeWatcher::refresh);
+        m_timer.setInterval(1500);
+        m_timer.start();
+        connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged,
+                this, &ThemeWatcher::refresh);
+    }
+
+    bool dark() const { return m_dark; }
+
+    void refresh()
+    {
+        const bool dark = detectColorScheme() == Qt::ColorScheme::Dark;
+        const bool changed = (dark != m_dark);
+        m_dark = dark;
+        // Re-assert every time: the platform theme (e.g. GTK) can overwrite the
+        // application palette during startup and on theme reloads.
+        applyCurrent();
+        if (changed)
+            Q_EMIT darkChanged();
+    }
+
+Q_SIGNALS:
+    void darkChanged();
+
+private:
+    void applyCurrent()
+    {
+        if (auto *app = qobject_cast<QApplication *>(qApp))
+            applyPalette(*app, m_dark);
+    }
+
+    bool m_dark = false;
+    QTimer m_timer;
+};
+
+
 void handleArguments(QStringList args)
 {
     if (args.isEmpty())
@@ -159,7 +298,19 @@ void activate(const QStringList &args, const QString &workingDir)
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    app.setWindowIcon(QIcon::fromTheme(QStringLiteral("fancontrol_gui")));
+
+    // Remember the platform's light palette so we can restore it when the
+    // system switches back to a light colour scheme at runtime.
+    s_lightPalette = app.style()->standardPalette();
+
+    // Follow the system light/dark preference. On Plasma the Breeze QML style
+    // tracks the KDE colour scheme automatically; elsewhere the palette-driven
+    // default style is used together with the detected palette.
+    if (qEnvironmentVariableIsEmpty("QT_QUICK_CONTROLS_STYLE") && isKdeSession())
+        QQuickStyle::setStyle(QStringLiteral("org.kde.desktop"));
+
+    app.setDesktopFileName(QStringLiteral("org.kde.fancontrol.gui"));
+    app.setWindowIcon(QIcon::fromTheme(QStringLiteral("org.kde.fancontrol.gui")));
 
     KLocalizedString::setApplicationDomain("kcm_fancontrol");
 
@@ -199,10 +350,15 @@ int main(int argc, char *argv[])
                                     QStringLiteral("Desktop Entry"));
         mainScript = metadata.readEntry(QStringLiteral("X-Plasma-MainScript"), mainScript);
     }
-
     QQmlApplicationEngine engine;
     I18nBridge i18nBridge;
     engine.globalObject().setProperty(QStringLiteral("_i18nBridge"), engine.newQObject(&i18nBridge));
+
+    // Applies the current system palette and keeps it in sync at runtime.
+    // Also exposed to QML as `_theme` so the ApplicationWindow can mirror the
+    // scheme onto its own controls palette.
+    ThemeWatcher themeWatcher;
+    engine.globalObject().setProperty(QStringLiteral("_theme"), engine.newQObject(&themeWatcher));
     engine.evaluate(QStringLiteral(
         "function i18n(text) {"
         "    return _i18nBridge.i18n(text, Array.prototype.slice.call(arguments, 1));"
@@ -220,6 +376,10 @@ int main(int argc, char *argv[])
     const QString mainQmlUrl = packagePath + QStringLiteral("/contents/") + mainScript;
     if (QFile::exists(mainQmlUrl))
         engine.load(QUrl::fromLocalFile(mainQmlUrl));
+
+    // Qt/KDE initialisation above may have replaced the palette; make sure the
+    // detected colour scheme is applied to the freshly created window.
+    themeWatcher.refresh();
 
     const auto rootObjects = engine.rootObjects();
     s_window = rootObjects.isEmpty() ? nullptr : qobject_cast<QWindow *>(rootObjects.first());

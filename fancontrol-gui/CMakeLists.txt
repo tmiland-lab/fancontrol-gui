@@ -4,6 +4,7 @@ set(Fancontrol_GUI_SRCS src/main.cpp
 set(LIBRARIES Qt6::Gui
               Qt6::Widgets
               Qt6::Qml
+              Qt6::QuickControls2
               KF6::CoreAddons
               KF6::DBusAddons
               KF6::I18n
