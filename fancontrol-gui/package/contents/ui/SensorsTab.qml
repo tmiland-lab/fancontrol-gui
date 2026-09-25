@@ -31,108 +31,150 @@ Kirigami.ScrollablePage {
     readonly property QtObject loader: Fancontrol.Base.loader
 
     spacing: Kirigami.Units.smallSpacing
-
-    Kirigami.InlineMessage {
-        id: alarmBanner
-
-        readonly property bool alarm: Fancontrol.Base.temperatureAlarm
-
-        visible: alarm
-        type: Kirigami.MessageType.Error
-        text: alarm ? i18n("Temperature alarm: %1 reached %2°C, above the %3°C threshold",
-                            Fancontrol.Base.alarmSensor,
-                            Fancontrol.Base.highestTemp.toFixed(1),
-                            Fancontrol.Base.alertThreshold.toFixed(1)) : ""
-        actions: [
-            Kirigami.Action {
-                icon.name: "dialog-ok"
-                text: i18n("Dismiss")
-                onTriggered: Fancontrol.Base.checkTemperatures()
-            },
-            Kirigami.Action {
-                icon.name: "configure"
-                text: i18n("Settings…")
-                onTriggered: window.leftPage = "SettingsTab.qml"
-            }
-        ]
-
-        Layout.fillWidth: true
-        z: 5
-    }
-
-    Fancontrol.TemperatureOverview {
-        id: overview
-
-        updateInterval: Fancontrol.Base.loader.interval * 1000
-        rangeMinutes: 5
-        height: Kirigami.Units.gridUnit * 20
-        Layout.fillWidth: true
-    }
+    horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOff
 
     ListView {
         id: listView
 
         width: root.width
-        topMargin: spacing
-        spacing: Kirigami.Units.largeSpacing * 2
-        headerPositioning: ListView.OverlayHeader
+        clip: true
+        topMargin: Kirigami.Units.smallSpacing
+        bottomMargin: Kirigami.Units.largeSpacing
+        spacing: Kirigami.Units.largeSpacing
+        boundsBehavior: Flickable.StopAtBounds
 
         model: loader.hwmons.length
 
+        // The temperature overview and the alarm banner ride along as the list
+        // header, so a single flickable scrolls the whole page.
+        header: Item {
+            width: listView.width
+            height: headerColumn.implicitHeight
+
+            ColumnLayout {
+                id: headerColumn
+
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.margins: Kirigami.Units.largeSpacing
+                spacing: Kirigami.Units.smallSpacing
+
+                Kirigami.InlineMessage {
+                    id: alarmBanner
+
+                    readonly property bool alarm: Fancontrol.Base.temperatureAlarm
+
+                    Layout.fillWidth: true
+                    visible: alarm
+                    type: Kirigami.MessageType.Error
+                    text: alarm ? i18n("Temperature alarm: %1 reached %2°C, above the %3°C threshold",
+                                        Fancontrol.Base.alarmSensor,
+                                        Fancontrol.Base.highestTemp.toFixed(1),
+                                        Fancontrol.Base.alertThreshold.toFixed(1)) : ""
+                    actions: [
+                        Kirigami.Action {
+                            icon.name: "dialog-ok"
+                            text: i18n("Dismiss")
+                            onTriggered: Fancontrol.Base.checkTemperatures()
+                        },
+                        Kirigami.Action {
+                            icon.name: "configure"
+                            text: i18n("Settings…")
+                            onTriggered: window.leftPage = "SettingsTab.qml"
+                        }
+                    ]
+                }
+
+                Fancontrol.TemperatureOverview {
+                    id: overview
+
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: Kirigami.Units.gridUnit * 20
+                    updateInterval: Fancontrol.Base.loader.interval * 1000
+                    rangeMinutes: 5
+                }
+            }
+        }
+
         delegate: Rectangle {
+            id: card
+
             readonly property QtObject hwmon: loader.hwmons[index]
 
-            height: childrenRect.height
-            width: listView.width - listView.spacing * 2
-            x: listView.spacing
-            color: Kirigami.Theme.backgroundColor
+            width: listView.width - Kirigami.Units.largeSpacing * 2
+            x: Kirigami.Units.largeSpacing
+            implicitHeight: content.implicitHeight + Kirigami.Units.largeSpacing * 2
+            radius: Kirigami.Units.smallSpacing
+            color: Kirigami.Theme.alternateBackgroundColor
+            border.width: 1
+            border.color: Qt.rgba(Kirigami.Theme.textColor.r,
+                                  Kirigami.Theme.textColor.g,
+                                  Kirigami.Theme.textColor.b, 0.12)
 
-            Column {
-                id: column
+            ColumnLayout {
+                id: content
 
-                width: parent.width
-                padding: root.spacing
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    top: parent.top
+                    margins: Kirigami.Units.largeSpacing
+                }
+                spacing: Kirigami.Units.smallSpacing
 
-                Label {
-                    anchors.horizontalCenter: parent.horizontalCenter
+                Kirigami.Heading {
+                    level: 3
                     text: hwmon.name
-                    font.pointSize: 12
-                    horizontalAlignment: Text.horizontalCenter
+                    Layout.fillWidth: true
+                    elide: Text.ElideRight
                 }
 
                 Repeater {
                     model: hwmon.fans.length
 
                     RowLayout {
-                        width: parent.width - parent.padding * 2
+                        Layout.fillWidth: true
+                        spacing: Kirigami.Units.smallSpacing
 
-                        Label {
-                            Layout.alignment: Qt.AlignLeft
-                            text: i18n("Fan %1:", index+1)
+                        Kirigami.Icon {
+                            source: "fan"
+                            implicitWidth: Kirigami.Units.iconSizes.small
+                            implicitHeight: Kirigami.Units.iconSizes.small
                         }
                         Label {
-                            id: rpmValue
-
-                            Layout.alignment: Qt.AlignRight
+                            Layout.fillWidth: true
+                            elide: Text.ElideRight
+                            text: i18n("Fan %1", index + 1)
+                            color: Kirigami.Theme.disabledTextColor
+                        }
+                        Label {
                             text: i18n("%1 rpm", hwmon.fans[index].rpm)
+                            font.bold: true
                         }
                     }
                 }
+
                 Repeater {
                     model: hwmon.temps.length
 
                     RowLayout {
-                        width: parent.width - parent.padding * 2
+                        Layout.fillWidth: true
+                        spacing: Kirigami.Units.smallSpacing
 
-                        Label {
-                            text: i18n("%1:", hwmon.temps[index].name)
-                            Layout.alignment: Qt.AlignLeft
+                        Kirigami.Icon {
+                            source: "thermometer"
+                            implicitWidth: Kirigami.Units.iconSizes.small
+                            implicitHeight: Kirigami.Units.iconSizes.small
                         }
                         Label {
-                            id: tempValue
-
+                            Layout.fillWidth: true
+                            elide: Text.ElideRight
+                            text: hwmon.temps[index].name
+                            color: Kirigami.Theme.disabledTextColor
+                        }
+                        Label {
                             text: hwmon.temps[index].value + i18n("°C")
-                            Layout.alignment: Qt.AlignRight
+                            font.bold: true
                         }
                     }
                 }

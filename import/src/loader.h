@@ -44,6 +44,7 @@ class Loader : public QObject
     Q_PROPERTY(QUrl configUrl READ configUrl NOTIFY configUrlChanged)
     Q_PROPERTY(QString configPath READ configPath NOTIFY configUrlChanged)
     Q_PROPERTY(QString config READ config NOTIFY configChanged)
+    Q_PROPERTY(QString savedConfig READ savedConfig NOTIFY configChanged)
     Q_PROPERTY(QList<QObject *> hwmons READ hwmonsAsObjects NOTIFY hwmonsChanged)
     Q_PROPERTY(int interval READ interval WRITE setInterval NOTIFY intervalChanged)
     Q_PROPERTY(bool sensorsDetected READ sensorsDetected NOTIFY sensorsDetectedChanged)
@@ -58,6 +59,10 @@ public:
     Q_INVOKABLE void parseHwmons(QString path = QString());
     Q_INVOKABLE bool load(const QUrl & = QUrl());
     Q_INVOKABLE bool save(const QUrl & = QUrl());
+    // Replace the working configuration with arbitrary text (e.g. imported
+    // from a URL or pasted). Updates the fan models but does not touch the
+    // file on disk until save() is called.
+    Q_INVOKABLE bool importConfig(const QString &config);
     Q_INVOKABLE void reset();
     Q_INVOKABLE void testFans();
     Q_INVOKABLE void abortTestingFans();
@@ -66,6 +71,7 @@ public:
     QUrl configUrl() const { return m_configUrl; }
     QString configPath() const { return m_configUrl.path(); }
     QString config() const { return m_config; }
+    QString savedConfig() const { return m_loadedConfig; }
     QList<Hwmon *> hwmons() const { return m_hwmons.values(); }
     bool sensorsDetected() const { return m_sensorsDetected; }
     bool restartServiceAfterTesting() const { return m_reactivateAfterTesting; }

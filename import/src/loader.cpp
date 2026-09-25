@@ -522,6 +522,28 @@ bool Loader::load(const QString& config)
     return success;
 }
 
+bool Loader::importConfig(const QString& config)
+{
+    if (config.trimmed().isEmpty())
+    {
+        Q_EMIT error(i18n("Cannot import empty config."), true);
+        return false;
+    }
+
+    // Update the fan models from the imported text, but keep the on-disk
+    // configuration as the baseline so the change shows up as "needs apply".
+    const bool success = parseConfig(config);
+
+    if (m_config != config)
+    {
+        m_config = config;
+        Q_EMIT configChanged();
+        Q_EMIT needsSaveChanged();
+    }
+
+    return success;
+}
+
 bool Loader::save(const QUrl &url)
 {
     QString filePath;
