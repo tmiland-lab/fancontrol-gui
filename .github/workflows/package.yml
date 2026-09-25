@@ -33,7 +33,7 @@ jobs:
             libkf6statusnotifieritem-dev \
             appstream \
             qml6-module-org-kde-kcmutils \
-            dpkg-dev fakeroot rpm
+            dpkg-dev fakeroot rpm file xz-utils zstd
 
       - name: Configure
         run: |
