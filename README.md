@@ -1,8 +1,8 @@
 # fancontrol-gui
 
 A GUI for [fancontrol](https://github.com/lm-sensors/lm-sensors), the fan-control
-daemon that ships with lm-sensors. It lets you read and adjust fan speeds and
-watch temperatures from a simple desktop application.
+daemon shipped with lm-sensors. It lets you read and adjust fan speeds and watch
+temperatures from a simple desktop application.
 
 This is the **Qt 6 / KDE Frameworks 6** port (see [Status](#status)).
 
@@ -19,40 +19,100 @@ ability to run the helper with root privileges.
 
 ## Features
 
-* **Sensor overview** — live temperature chart (`TemperatureOverview`) and
-  per-sensor values on the Sensors tab.
-* **Fan control curves** — build PWM fan curves point by point on the
-  Fans tab. Choose presets and pick a profile on the Profiles dialog.
-* **Temperature alarm** — enable an alert threshold; the app shows an inline
-  alarm banner and raises a desktop notification (`KNotification`) when a
-  sensor exceeds the threshold, listing the offending sensor and the current
-  value. Dismiss rechecks, or jump straight to settings.
-* **Profiles** — save and apply named fan-control profiles.
-* **Plasmoid & KCM** — optional KDE Plasma widget and system-settings module.
+* **Sensor overview** — live temperature chart and per-sensor values on the
+  Sensors tab.
+* **Fan control curves** — build PWM fan curves point by point. Drag the start
+  and maximum anchors and the intermediate waypoints, add or remove points, and
+  start from the **Silent**, **Cool**, **Balanced** or **Performance** presets.
+* **Autotune** — measure the fan's real start and stop values. The test streams
+  live phase feedback (finding the lowest speed, start speed, stop speed) with
+  an abort button, and only applies what you confirm.
+* **Editable fan names** — rename any fan inline; names are persisted and used
+  everywhere in the UI.
+* **Temperature & PWM history** — a live timeline plus the PWM duty cycle for
+  the selected fan.
+* **Profiles** — apply, create, save to, rename, duplicate and delete named
+  profiles, with confirmation for destructive actions. Profiles can be imported
+  from and exported to `*.conf` files.
+* **Configuration file view** — the Configfile tab shows the generated file as
+  **Raw** text, a structured **Table** (per-fan thresholds and PWM levels), and
+  a **Changes** diff of pending edits. It validates the configuration and flags
+  invalid combinations (e.g. `MINTEMP ≥ MAXTEMP`, `MINSTOP > MAXPWM`). A
+  configuration can be imported from a URL or pasted directly, then reviewed
+  before it is applied.
+* **Temperature alarm** — enable a threshold; the app shows an inline alarm
+  banner and raises a desktop notification (`KNotification`) when a sensor
+  exceeds it, listing the offending sensor and current value.
+* **Follows the system theme** — light and dark mode track the desktop setting
+  live, without restarting the app.
 * **Tray integration** — tray icon, start minimized, all optional.
+* **Plasmoid & KCM** — optional KDE Plasma widget and system-settings module.
 
 ## Screenshots
 
-![Sensors overview](https://user-images.githubusercontent.com/8409391/89116324-02da7400-d4bd-11ea-867c-3172edf87f2e.png)
+Screenshots adapt to GitHub's light/dark theme.
 
-![Fan curves](https://user-images.githubusercontent.com/8409391/89116322-f8b87600-d4bc-11ea-89e4-515121cd7d21.png)
+### Sensors
 
-![Fan speeds](https://user-images.githubusercontent.com/8409391/89116328-0a9a1900-d4bd-11ea-955f-f4e80c885d8b.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/sensors-dark.png">
+  <img alt="Sensors tab: live temperature overview and per-sensor values" src="docs/screenshots/sensors-light.png">
+</picture>
 
-![Profiles dialog](https://user-images.githubusercontent.com/8409391/89116329-108ffa00-d4bd-11ea-990c-2c1f2ca3dc90.png)
+### Fans — fan curve
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/fans-curve-dark.png">
+  <img alt="Fans tab: editable PWM fan curve with presets and autotune" src="docs/screenshots/fans-curve-light.png">
+</picture>
+
+### Fans — temperature & PWM
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/fans-temperature-pwm-dark.png">
+  <img alt="Fans tab: temperature timeline and PWM history" src="docs/screenshots/fans-temperature-pwm-light.png">
+</picture>
+
+### Configfile — table
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/configfile-table-dark.png">
+  <img alt="Configfile tab: structured per-fan table" src="docs/screenshots/configfile-table-light.png">
+</picture>
+
+### Configfile — raw and changes
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/configfile-raw-dark.png">
+  <img alt="Configfile tab: raw configuration text" src="docs/screenshots/configfile-raw-light.png">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/configfile-changes-dark.png">
+  <img alt="Configfile tab: pending changes diff" src="docs/screenshots/configfile-changes-light.png">
+</picture>
+
+### Settings
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/settings-dark.png">
+  <img alt="Settings tab" src="docs/screenshots/settings-light.png">
+</picture>
 
 ## Status
 
 * **2026** — ported from Qt5/KF5 to **Qt6 / KDE Frameworks 6**. Build, install
-  and the bundled unit tests are verified against current KF6 on up‑to‑date
+  and the bundled unit tests are verified against current KF6 on up-to-date
   distributions; continuous integration builds and runs the test suite on every
   push.
-* Alerts (temperature alarm + desktop notification) and the temperature
-  overview chart are included in this build.
+* Recent UX work includes the tabbed Fans layout, the structured Configfile
+  view with validation and diffing, full profile management, an autotune rework,
+  editable fan names, live system dark/light following, and a themed
+  application icon.
 
 ## Build requirements
 
-* Qt6: Base/Core, Widgets, Gui, QML
+* Qt6: Base/Core, Widgets, Gui, QML, Quick, QuickControls2
 * KF6: I18n, Auth, Config, Package, Declarative, CoreAddons, DBusAddons,
   Extra-Cmake-Modules, Notifications
 * Other: a C++ compiler, Gettext, CMake
@@ -111,6 +171,10 @@ make -j
 sudo make install
 ```
 
+If you run the application from the build tree instead of installing it, point
+the QML engine at the module and package in the build/install tree, or simply
+install it — the app loads its QML from the installed module.
+
 ## Build options
 
 | Option | Default | Description |
@@ -131,6 +195,14 @@ KAuth helper. To avoid authorizing every use of the helper, build with
 `-DINSTALL_POLKIT=true`; this installs a polkit rules file allowing members of
 the group `fancontrol` to edit the config file and control the service. The
 group can be changed with `-DPOLKIT_GROUP_NAME`.
+
+## Theming
+
+The application follows the desktop's light/dark preference automatically and
+updates live when it changes. On Plasma the reported colour scheme is used; on
+GTK-based desktops (e.g. GNOME) the `org.gnome.desktop.interface color-scheme`
+setting is consulted. Set `FANCONTROL_COLOR_SCHEME=dark` or `light` to override
+the detection.
 
 ## Running the tests
 
