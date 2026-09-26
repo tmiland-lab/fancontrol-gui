@@ -59,6 +59,13 @@ Item {
         }
     }
 
+    // Canvas contents are cached; repaint when the colour scheme changes so
+    // the grid graph does not keep the previous (e.g. dark) theme colours.
+    Connections {
+        target: Kirigami.Theme
+        function onColorsChanged() { historyCanvas.requestPaint() }
+    }
+
     Rectangle {
         anchors.fill: parent
         color: Kirigami.Theme.backgroundColor

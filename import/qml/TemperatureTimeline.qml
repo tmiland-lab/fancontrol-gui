@@ -62,6 +62,13 @@ Item {
         }
     }
 
+    // Canvas contents are cached; repaint when the colour scheme changes so
+    // the timeline does not keep the previous (e.g. dark) theme colours.
+    Connections {
+        target: Kirigami.Theme
+        function onColorsChanged() { historyCanvas.requestPaint() }
+    }
+
     Rectangle {
         id: background
 

@@ -200,6 +200,19 @@ Item {
         if (!!meshCanvas) meshCanvas.requestPaint()
     }
 
+    // Canvas contents are cached bitmaps. The curves, mesh and trail are
+    // painted with the current theme colours, so they must be repainted when
+    // the system switches between light and dark, otherwise the plot keeps
+    // its old (dark) fill on a light background.
+    Connections {
+        target: Kirigami.Theme
+        function onColorsChanged() {
+            if (!!curveCanvas) curveCanvas.requestPaint()
+            if (!!trailCanvas) trailCanvas.requestPaint()
+            if (!!meshCanvas) meshCanvas.requestPaint()
+        }
+    }
+
     Connections {
         target: fan && fan.hasTemp ? fan : null
         function onMinPwmChanged() { syncAnchorsFromFan() }

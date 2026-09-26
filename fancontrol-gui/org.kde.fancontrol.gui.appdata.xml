@@ -30,6 +30,15 @@
         <binary>fancontrol_gui</binary>
     </provides>
     <releases>
+        <release version="1.0.1" date="2026-09-26">
+            <description>
+                <p>
+                    Repaint chart canvases when the system colour scheme
+                    changes, so the fan-curve plot and history graphs no longer
+                    keep their dark colours after switching to light mode.
+                </p>
+            </description>
+        </release>
         <release version="1.0.0" date="2026-09-25">
             <description>
                 <p>

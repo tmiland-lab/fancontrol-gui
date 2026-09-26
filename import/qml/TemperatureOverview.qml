@@ -112,6 +112,13 @@ Item {
         function onTempsChanged() { rebuildSeries() }
     }
 
+    // Canvas contents are cached; repaint when the colour scheme changes so
+    // the chart grid/labels do not keep the previous (e.g. dark) theme colours.
+    Connections {
+        target: Kirigami.Theme
+        function onColorsChanged() { overviewCanvas.requestPaint() }
+    }
+
     Timer {
         interval: root.updateInterval
         repeat: true
