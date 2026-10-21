@@ -76,7 +76,9 @@ RowLayout {
             TextField {
                 id: nameField
 
-                text: !!fan ? fan.name : ""
+                // No `text:` binding here: typing in a TextField destroys a
+                // QML binding, after which the field kept showing the previous
+                // fan's name forever (on fan switches too). Sync imperatively.
                 placeholderText: i18n("Fan name")
                 selectByMouse: true
                 font.bold: true
@@ -96,21 +98,42 @@ RowLayout {
                     border.color: Colors.setAlpha(Kirigami.Theme.focusColor, 0.6)
                 }
 
+                function syncFromFan() {
+                    if (nameField.activeFocus)
+                        return;
+                    var value = !!fan ? fan.name : "";
+                    if (nameField.text !== value)
+                        nameField.text = value;
+                }
+
+                // Switching fans must always show the new fan's name, even
+                // while the field still has focus (sidebar clicks do not move
+                // focus away), and must never commit the previous fan's text
+                // to the new fan.
+                function resetForFanChange() {
+                    nameField.text = !!fan ? fan.name : "";
+                    nameField.focus = false;
+                }
+
+                Component.onCompleted: syncFromFan()
+
                 // Commit only when editing finishes (Enter/focus loss) so
                 // partial names are not written on every keystroke.
                 onEditingFinished: {
                     if (!!fan && text.trim().length > 0 && fan.name !== text.trim())
                         fan.name = text.trim();
-                    else if (!!fan)
-                        text = fan.name;
+                    else
+                        syncFromFan();
                 }
 
                 Connections {
                     target: !!fan ? fan : null
-                    function onNameChanged() {
-                        if (!nameField.activeFocus && fan.name !== nameField.text)
-                            nameField.text = fan.name;
-                    }
+                    function onNameChanged() { nameField.syncFromFan() }
+                }
+
+                Connections {
+                    target: root
+                    function onFanChanged() { nameField.resetForFanChange() }
                 }
             }
 
