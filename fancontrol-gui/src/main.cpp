@@ -346,7 +346,7 @@ int main(int argc, char *argv[])
 
     auto about = KAboutData(QStringLiteral("org.kde.fancontrol.gui"),
                             i18n("Fancontrol-GUI"),
-                            QStringLiteral("1.0.1"),
+                            QStringLiteral("1.0.2"),
                             i18n("Graphical user interface for fancontrol"),
                             KAboutLicense::KAboutLicense::GPL_V2,
                             QStringLiteral("Copyright (C) 2015 Malte Veerman"),

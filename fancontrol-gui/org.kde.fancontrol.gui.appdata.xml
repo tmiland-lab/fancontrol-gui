@@ -30,6 +30,17 @@
         <binary>fancontrol_gui</binary>
     </provides>
     <releases>
+        <release version="1.0.2" date="2026-10-21">
+            <description>
+                <p>
+                    Fixes stale displays: the "Controlled by" temperature and
+                    the temperature overview legend now update live, the
+                    window no longer stays dark after being started while the
+                    system was dark, and the fan name header follows fan
+                    switches again.
+                </p>
+            </description>
+        </release>
         <release version="1.0.1" date="2026-09-26">
             <description>
                 <p>
