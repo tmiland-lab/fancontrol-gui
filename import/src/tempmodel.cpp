@@ -109,6 +109,10 @@ void TempModel::addTemp(Temp *newTemp)
     int index = newTemps.indexOf(newTemp);
 
     connect(newTemp, &Temp::nameChanged, this, static_cast<void(TempModel::*)()>(&TempModel::updateTemp));
+    // Without this the display role (and every view bound to it, e.g. the
+    // "Controlled by" combo box) never refreshes: addTemp() is the only
+    // population path used by GUIBase, setTemps() is never called.
+    connect(newTemp, &Temp::valueChanged, this, static_cast<void(TempModel::*)()>(&TempModel::updateTemp));
 
     beginInsertRows(QModelIndex(), index, index);
     m_temps = newTemps;
