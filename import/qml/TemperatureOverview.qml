@@ -139,6 +139,9 @@ Item {
                 arr.push(t.value);
                 root.series[keys[i]] = arr;
             }
+            // Mutating the arrays above sends no change signal; re-assign the
+            // series object so the legend and the max indicator re-evaluate.
+            root.series = Object.assign({}, root.series);
             updateMaxMarker();
             overviewCanvas.requestPaint();
         }
