@@ -30,7 +30,11 @@ Item {
     property int updateInterval: 1000
     property bool running: true
     property color lineColor: Kirigami.Theme.neutralTextColor
-    property color fillColor: Qt.rgba(lineColor.r, lineColor.g, lineColor.b, 0.15)
+    // The area fill must stay visible on light and dark panels alike: a fixed
+    // 0.15 alpha washed out to near-white on light panels and to near-invisible
+    // on dark ones. Use a higher alpha, stronger on dark backgrounds.
+    readonly property bool darkPanel: Kirigami.Theme.backgroundColor.hslLightness < 0.5
+    property color fillColor: Qt.rgba(lineColor.r, lineColor.g, lineColor.b, darkPanel ? 0.4 : 0.3)
 
     implicitHeight: Kirigami.Units.gridUnit * 8
 

@@ -179,7 +179,41 @@ static Qt::ColorScheme detectColorScheme()
     return hint;
 }
 
-static QPalette s_lightPalette;
+// Explicit light palette with the values QStyle::standardPalette() reports in
+// a light session (Fusion/Breeze Light). It must not be copied from the style
+// at startup: in a session that starts dark that "standard" palette is the
+// dark one, which left the app stuck on a dark palette when the system later
+// switched to light.
+static QPalette lightPalette()
+{
+    const QColor window(239, 239, 239);
+    const QColor base(255, 255, 255);
+    const QColor alternate(247, 247, 247);
+    const QColor text(0, 0, 0);
+    const QColor disabled(190, 190, 190);
+
+    QPalette pal;
+    pal.setColor(QPalette::Window, window);
+    pal.setColor(QPalette::WindowText, text);
+    pal.setColor(QPalette::Base, base);
+    pal.setColor(QPalette::AlternateBase, alternate);
+    pal.setColor(QPalette::ToolTipBase, QColor(255, 255, 220));
+    pal.setColor(QPalette::ToolTipText, text);
+    pal.setColor(QPalette::Text, text);
+    pal.setColor(QPalette::PlaceholderText, text);
+    pal.setColor(QPalette::Button, window);
+    pal.setColor(QPalette::ButtonText, text);
+    pal.setColor(QPalette::BrightText, Qt::white);
+    pal.setColor(QPalette::Link, QColor(0, 0, 255));
+    pal.setColor(QPalette::Highlight, QColor(48, 140, 198));
+    pal.setColor(QPalette::HighlightedText, Qt::white);
+
+    pal.setColor(QPalette::Disabled, QPalette::Text, disabled);
+    pal.setColor(QPalette::Disabled, QPalette::WindowText, disabled);
+    pal.setColor(QPalette::Disabled, QPalette::ButtonText, disabled);
+
+    return pal;
+}
 
 static QPalette darkPalette()
 {
@@ -191,7 +225,7 @@ static QPalette darkPalette()
     const QColor disabled(127, 140, 141);
     const QColor highlight(61, 174, 233);
 
-    QPalette pal = s_lightPalette;
+    QPalette pal = lightPalette();
     pal.setColor(QPalette::Window, window);
     pal.setColor(QPalette::WindowText, text);
     pal.setColor(QPalette::Base, window);
@@ -216,7 +250,7 @@ static QPalette darkPalette()
 
 static void applyPalette(QApplication &app, bool dark)
 {
-    const QPalette pal = dark ? darkPalette() : s_lightPalette;
+    const QPalette pal = dark ? darkPalette() : lightPalette();
     app.setPalette(pal);
 }
 
@@ -298,10 +332,6 @@ void activate(const QStringList &args, const QString &workingDir)
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-
-    // Remember the platform's light palette so we can restore it when the
-    // system switches back to a light colour scheme at runtime.
-    s_lightPalette = app.style()->standardPalette();
 
     // Follow the system light/dark preference. On Plasma the Breeze QML style
     // tracks the KDE colour scheme automatically; elsewhere the palette-driven
