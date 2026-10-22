@@ -43,7 +43,11 @@ Rectangle {
     radius: size / 2
     x: MoreMath.bound(-width/2, background.scaleX(unscaledTemp) - width/2, background.width-width/2)
     y: background.scaleY(unscaledPwm) - height/2
-    color: palette.mid
+    // Kirigami.Theme, not SystemPalette: SystemPalette follows the platform
+    // theme palette, which stays light here no matter which scheme the app
+    // runs (the dot rendered white on the light plot). textColor keeps the
+    // dot black in light mode and white in dark mode.
+    color: Kirigami.Theme.textColor
 
     Behavior on unscaledTemp {
         SpringAnimation {
@@ -83,7 +87,9 @@ Rectangle {
         width: column.width
         height: column.height
         radius: Kirigami.Units.smallSpacing / 2
-        color: Qt.rgba(root.color.r, root.color.g, root.color.b, 0.5)
+        color: Kirigami.Theme.alternateBackgroundColor
+        border.width: 1
+        border.color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.25)
         visible: root.enabled && pwmMouse.containsMouse
 
         Column {
@@ -107,9 +113,5 @@ Rectangle {
                 color: Kirigami.Theme.textColor
             }
         }
-    }
-
-    SystemPalette {
-        id: palette
     }
 }
